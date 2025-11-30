@@ -9,7 +9,7 @@ from tkinter import ttk
 import time
 from typing import Callable, List, Tuple
 
-from kursorin.config import KursorinConfig
+from kursorin.core.kursorin_engine import KursorinEngine
 from kursorin.constants import CALIBRATION_POINTS_3X3, Color
 
 
@@ -18,9 +18,9 @@ class CalibrationWindow:
     Window for performing 9-point calibration.
     """
     
-    def __init__(self, parent, config: KursorinConfig, on_complete: Callable):
+    def __init__(self, parent, engine: KursorinEngine, on_complete: Callable):
         self.parent = parent
-        self.config = config
+        self.engine = engine
         self.on_complete = on_complete
         
         self.window = tk.Toplevel(parent)
@@ -63,12 +63,12 @@ class CalibrationWindow:
         )
         
         # Animate shrinking
-        self._animate_point(cx, cy, radius)
+        self._animate_point(cx, cy, radius, px, py)
         
-    def _animate_point(self, cx, cy, radius):
+    def _animate_point(self, cx, cy, radius, px, py):
         if radius <= 5:
             # Point captured
-            # In a real system, we would collect gaze data here
+            self.engine.record_calibration_point(px, py)
             self.current_point_idx += 1
             self.window.after(500, self._show_next_point)
             return
@@ -79,7 +79,7 @@ class CalibrationWindow:
             fill="red", outline="white", width=2
         )
         
-        self.window.after(50, lambda: self._animate_point(cx, cy, radius - 1))
+        self.window.after(50, lambda: self._animate_point(cx, cy, radius - 1, px, py))
         
     def _finish(self):
         self.window.destroy()

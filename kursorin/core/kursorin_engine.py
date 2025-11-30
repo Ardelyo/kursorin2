@@ -298,6 +298,36 @@ class KursorinEngine:
         else:
             self.pause()
         return self._is_paused
+
+    def start_calibration(self) -> None:
+        """Enter calibration mode."""
+        self.state = TrackingState.CALIBRATING
+        logger.info("Started calibration")
+
+    def stop_calibration(self) -> None:
+        """Exit calibration mode."""
+        self.state = TrackingState.TRACKING
+        logger.info("Stopped calibration")
+
+    def record_calibration_point(self, x: float, y: float) -> None:
+        """
+        Record data for a calibration point.
+        
+        Args:
+            x: Normalized X coordinate (0-1)
+            y: Normalized Y coordinate (0-1)
+        """
+        if self.state != TrackingState.CALIBRATING:
+            logger.warning("Ignored calibration point (not in calibration mode)")
+            return
+            
+        logger.info(f"Recording calibration point: ({x:.2f}, {y:.2f})")
+        # TODO: Implement actual data collection from EyeTracker
+        # This would involve telling the EyeTracker to store the current gaze features
+        # associated with this ground truth point.
+        if self._eye_tracker:
+            # self._eye_tracker.calibrate_point(x, y)
+            pass
     
     def _processing_loop(self) -> None:
         """Main processing loop running in separate thread."""

@@ -14,6 +14,7 @@ import time
 from kursorin.config import KursorinConfig
 from kursorin.core.kursorin_engine import KursorinEngine, FrameResult
 from kursorin.ui.overlay import Overlay
+from kursorin.ui.calibration_window import CalibrationWindow
 
 
 class AppWindow:
@@ -64,6 +65,10 @@ class AppWindow:
         ttk.Label(controls_frame, text="Sensitivity").pack(fill=tk.X, pady=(20, 5))
         self.scale_sens = ttk.Scale(controls_frame, from_=0.1, to=5.0, value=self.config.tracking.head_sensitivity_x)
         self.scale_sens.pack(fill=tk.X)
+
+        # Calibration Button
+        self.btn_calibrate = ttk.Button(controls_frame, text="Calibrate", command=self._start_calibration)
+        self.btn_calibrate.pack(fill=tk.X, pady=20)
         
     def _toggle_tracking(self):
         if self.engine.is_running:
@@ -77,6 +82,20 @@ class AppWindow:
                 self.lbl_status.configure(text="Status: Running")
             except Exception as e:
                 self.lbl_status.configure(text=f"Error: {str(e)}")
+
+    def _start_calibration(self):
+        """Start the calibration process."""
+        if not self.engine.is_running:
+            self.lbl_status.configure(text="Error: Start engine first")
+            return
+            
+        self.engine.start_calibration()
+        CalibrationWindow(self.root, self.engine, self._on_calibration_complete)
+        
+    def _on_calibration_complete(self):
+        """Handle calibration completion."""
+        self.engine.stop_calibration()
+        self.lbl_status.configure(text="Status: Calibration Complete")
                 
     def _on_frame(self, result: FrameResult):
         """Handle new frame from engine."""
