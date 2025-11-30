@@ -1,0 +1,140 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "kursorin"
+version = "1.0.0"
+description = "Affordable Webcam-Based Human-Computer Interaction System"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.8"
+authors = [
+    {name = "Ardellio Satria Anindito", email = "email.ardellio@contoh.com"}
+]
+maintainers = [
+    {name = "Ardellio Satria Anindito", email = "email.ardellio@contoh.com"}
+]
+keywords = [
+    "eye-tracking",
+    "head-tracking", 
+    "hand-tracking",
+    "accessibility",
+    "human-computer-interaction",
+    "computer-vision",
+    "mediapipe",
+    "webcam"
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering :: Human Machine Interfaces",
+]
+
+dependencies = [
+    "opencv-python>=4.5.0",
+    "mediapipe>=0.9.0",
+    "numpy>=1.21.0",
+    "pyautogui>=0.9.53",
+    "scipy>=1.7.0",
+    "pillow>=9.0.0",
+    "pynput>=1.7.0",
+    "screeninfo>=0.8.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "black>=23.0.0",
+    "flake8>=6.0.0",
+    "mypy>=1.0.0",
+    "isort>=5.12.0",
+]
+
+[project.scripts]
+kursorin = "kursorin.__main__:main"
+kursorin-cli = "kursorin.cli:main"
+
+[project.gui-scripts]
+kursorin-gui = "kursorin.app:main"
+
+[project.urls]
+Homepage = "https://github.com/yourusername/kursorin"
+Documentation = "https://github.com/yourusername/kursorin/docs"
+Repository = "https://github.com/yourusername/kursorin"
+Issues = "https://github.com/yourusername/kursorin/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["kursorin*"]
+exclude = ["tests*", "examples*", "scripts*"]
+
+[tool.setuptools.package-data]
+kursorin = [
+    "assets/icons/*.ico",
+    "assets/icons/*.png",
+    "assets/sounds/*.wav",
+    "assets/calibration/*.png",
+]
+
+[tool.black]
+line-length = 100
+target-version = ['py38', 'py39', 'py310', 'py311']
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 100
+known_first_party = ["kursorin"]
+skip = [".venv", "venv", "build", "dist"]
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+exclude = ["tests", "examples", "scripts"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_functions = ["test_*"]
+addopts = "-v --cov=kursorin --cov-report=term-missing --cov-report=html"
+filterwarnings = [
+    "ignore::DeprecationWarning",
+]
+
+[tool.coverage.run]
+source = ["kursorin"]
+omit = ["tests/*", "examples/*", "scripts/*"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+]
