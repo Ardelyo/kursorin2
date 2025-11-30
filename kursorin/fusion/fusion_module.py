@@ -48,20 +48,29 @@ class FusionModule:
         
         # 1. Head Tracking
         if head_result and head_result.valid and self.config.tracking.head_enabled:
-            weight = self.config.fusion.weight_head
-            # Adjust weight based on confidence/reliability if needed
+            base_weight = self.config.fusion.weight_head
+            # Adaptive weighting based on confidence
+            confidence = getattr(head_result, 'confidence', 1.0)
+            weight = base_weight * confidence
+            
             positions.append(head_result.position)
             weights.append(weight)
             
         # 2. Eye Tracking
         if eye_result and eye_result.valid and self.config.tracking.eye_enabled:
-            weight = self.config.fusion.weight_eye
+            base_weight = self.config.fusion.weight_eye
+            confidence = getattr(eye_result, 'confidence', 1.0)
+            weight = base_weight * confidence
+            
             positions.append(eye_result.position)
             weights.append(weight)
             
         # 3. Hand Tracking
         if hand_result and hand_result.valid and self.config.tracking.hand_enabled:
-            weight = self.config.fusion.weight_hand
+            base_weight = self.config.fusion.weight_hand
+            confidence = getattr(hand_result, 'confidence', 1.0)
+            weight = base_weight * confidence
+            
             positions.append(hand_result.position)
             weights.append(weight)
             

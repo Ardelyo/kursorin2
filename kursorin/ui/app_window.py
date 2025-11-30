@@ -70,6 +70,28 @@ class AppWindow:
         self.btn_calibrate = ttk.Button(controls_frame, text="Calibrate", command=self._start_calibration)
         self.btn_calibrate.pack(fill=tk.X, pady=20)
         
+        # Mirroring Controls
+        mirror_frame = ttk.LabelFrame(controls_frame, text="Mirroring")
+        mirror_frame.pack(fill=tk.X, pady=10)
+        
+        self.var_invert_x = tk.BooleanVar(value=self.config.tracking.invert_x)
+        self.chk_invert_x = ttk.Checkbutton(mirror_frame, text="Invert X", variable=self.var_invert_x, command=self._update_config)
+        self.chk_invert_x.pack(anchor=tk.W)
+        
+        self.var_invert_y = tk.BooleanVar(value=self.config.tracking.invert_y)
+        self.chk_invert_y = ttk.Checkbutton(mirror_frame, text="Invert Y", variable=self.var_invert_y, command=self._update_config)
+        self.chk_invert_y.pack(anchor=tk.W)
+        
+        # Accessibility Scenarios
+        scenario_frame = ttk.LabelFrame(controls_frame, text="Scenario")
+        scenario_frame.pack(fill=tk.X, pady=10)
+        
+        self.scenarios = ["Default", "Hands-Free", "No Head Tracking"]
+        self.cmb_scenario = ttk.Combobox(scenario_frame, values=self.scenarios, state="readonly")
+        self.cmb_scenario.current(0)
+        self.cmb_scenario.pack(fill=tk.X, pady=5)
+        self.cmb_scenario.bind("<<ComboboxSelected>>", self._on_scenario_change)
+        
     def _toggle_tracking(self):
         if self.engine.is_running:
             self.engine.stop()
@@ -96,6 +118,35 @@ class AppWindow:
         """Handle calibration completion."""
         self.engine.stop_calibration()
         self.lbl_status.configure(text="Status: Calibration Complete")
+        
+    def _update_config(self):
+        """Update configuration from UI."""
+        self.config.tracking.invert_x = self.var_invert_x.get()
+        self.config.tracking.invert_y = self.var_invert_y.get()
+        
+    def _on_scenario_change(self, event):
+        """Handle scenario change."""
+        scenario = self.cmb_scenario.get()
+        
+        if scenario == "Default":
+            self.config.tracking.head_enabled = True
+            self.config.tracking.eye_enabled = True
+            self.config.tracking.hand_enabled = True
+            self.config.click.pinch_click_enabled = True
+            
+        elif scenario == "Hands-Free":
+            self.config.tracking.head_enabled = True
+            self.config.tracking.eye_enabled = True
+            self.config.tracking.hand_enabled = False
+            self.config.click.pinch_click_enabled = False
+            
+        elif scenario == "No Head Tracking":
+            self.config.tracking.head_enabled = False
+            self.config.tracking.eye_enabled = True
+            self.config.tracking.hand_enabled = True
+            self.config.click.pinch_click_enabled = True
+            
+        logger.info(f"Switched to scenario: {scenario}")
                 
     def _on_frame(self, result: FrameResult):
         """Handle new frame from engine."""

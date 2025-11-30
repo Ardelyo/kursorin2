@@ -27,6 +27,10 @@ class TrackingConfig(BaseModel):
     head_dead_zone: float = Field(default=0.02, ge=0.0, le=0.1)
     head_smoothing: float = Field(default=0.8, ge=0.0, le=0.99)
     
+    # Mirroring / Inversion
+    invert_x: bool = False
+    invert_y: bool = False
+    
     # Eye tracking
     eye_enabled: bool = True
     eye_sensitivity: float = Field(default=1.0, ge=0.5, le=2.0)

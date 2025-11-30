@@ -29,6 +29,7 @@ from kursorin.trackers import HeadTracker, EyeTracker, HandTracker, TrackerResul
 from kursorin.fusion import FusionModule, CursorSmoother
 from kursorin.core.cursor_controller import CursorController
 from kursorin.core.click_detector import ClickDetector
+from kursorin.core.calibration_model import CalibrationModel
 from kursorin.utils.camera_manager import CameraManager
 from kursorin.utils.performance_monitor import PerformanceMonitor
 
@@ -96,7 +97,12 @@ class KursorinEngine:
         self._smoother: Optional[CursorSmoother] = None
         self._cursor_controller: Optional[CursorController] = None
         self._click_detector: Optional[ClickDetector] = None
+        self._click_detector: Optional[ClickDetector] = None
         self._performance_monitor: Optional[PerformanceMonitor] = None
+        self._calibration_model: Optional[CalibrationModel] = None
+        
+        # Cache for calibration
+        self._latest_eye_result: Optional[TrackerResult] = None
         
         # Processing thread
         self._processing_thread: Optional[threading.Thread] = None
@@ -209,6 +215,10 @@ class KursorinEngine:
                 # Initialize performance monitor
                 self._performance_monitor = PerformanceMonitor()
                 logger.info("Performance monitor initialized")
+                
+                # Initialize calibration model
+                self._calibration_model = CalibrationModel()
+                logger.info("Calibration model initialized")
                 
                 self.state = TrackingState.IDLE
                 logger.info("KURSORIN components initialized successfully")

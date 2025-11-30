@@ -37,8 +37,36 @@ class CalibrationWindow:
         self.window.after(1000, self._start_calibration)
         
     def _start_calibration(self):
+        # Bind mouse click
+        self.canvas.bind("<Button-1>", self._on_click)
         self._show_next_point()
         
+    def _on_click(self, event):
+        """Handle mouse click on calibration point."""
+        # Get current target point
+        if self.current_point_idx >= len(self.points):
+            return
+            
+        px, py = self.points[self.current_point_idx]
+        w = self.window.winfo_width()
+        h = self.window.winfo_height()
+        cx = int(px * w)
+        cy = int(py * h)
+        
+        # Check if click is near the target (optional, but good for UX)
+        # For now, we assume the user is trying to click the dot
+        
+        # Record data with GROUND TRUTH (mouse position)
+        # Ideally we use the target center (px, py) as ground truth
+        self.engine.record_calibration_point(px, py)
+        
+        # Visual feedback
+        self.canvas.itemconfig(self.dot, fill="green")
+        
+        # Move to next point after short delay
+        self.current_point_idx += 1
+        self.window.after(200, self._show_next_point)
+
     def _show_next_point(self):
         if self.current_point_idx >= len(self.points):
             self._finish()
@@ -56,30 +84,18 @@ class CalibrationWindow:
         cy = int(py * h)
         
         # Draw point
-        radius = 20
-        self.canvas.create_oval(
+        radius = 15
+        self.dot = self.canvas.create_oval(
             cx - radius, cy - radius, cx + radius, cy + radius,
             fill="red", outline="white", width=2
         )
         
-        # Animate shrinking
-        self._animate_point(cx, cy, radius, px, py)
-        
-    def _animate_point(self, cx, cy, radius, px, py):
-        if radius <= 5:
-            # Point captured
-            self.engine.record_calibration_point(px, py)
-            self.current_point_idx += 1
-            self.window.after(500, self._show_next_point)
-            return
-            
-        self.canvas.delete("all")
-        self.canvas.create_oval(
-            cx - radius, cy - radius, cx + radius, cy + radius,
-            fill="red", outline="white", width=2
+        # Instruction
+        self.canvas.create_text(
+            w/2, 50,
+            text=f"Klik titik merah ({self.current_point_idx + 1}/{len(self.points)})",
+            fill="white", font=("Arial", 20)
         )
-        
-        self.window.after(50, lambda: self._animate_point(cx, cy, radius - 1, px, py))
         
     def _finish(self):
         self.window.destroy()

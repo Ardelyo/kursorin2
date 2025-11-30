@@ -36,6 +36,11 @@ class CursorController:
         x, y = position
         
         # Map to screen coordinates
+        if self.config.tracking.invert_x:
+            x = 1.0 - x
+        if self.config.tracking.invert_y:
+            y = 1.0 - y
+            
         screen_x = int(x * self.screen_width)
         screen_y = int(y * self.screen_height)
         

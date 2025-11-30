@@ -59,13 +59,30 @@ class Overlay:
                 # We need to convert normalized landmarks to pixel coordinates
                 pass
                 
-        # Draw Cursor Position (if mapped back to frame, or just an indicator)
+        # Draw Cursor Position (Fused)
         if result.cursor_position:
             cx, cy = result.cursor_position
-            # Draw a small circle representing cursor position (mapped to frame size)
-            # This is just for feedback
+            
+            # Map to frame coordinates (approximate, since frame != screen)
+            # We assume frame covers the screen for visualization purposes
             px = int(cx * w)
             py = int(cy * h)
+            
+            # Draw Fused Point
             cv2.circle(vis_frame, (px, py), 10, Color.FUSED_COLOR, -1)
+            cv2.putText(vis_frame, "Cursor", (px + 15, py), cv2.FONT_HERSHEY_SIMPLEX, 0.5, Color.FUSED_COLOR, 1)
+            
+            # Draw lines from individual trackers to fused point
+            if result.head_result and result.head_result.valid:
+                hx, hy = result.head_result.position
+                hpx, hpy = int(hx * w), int(hy * h)
+                cv2.line(vis_frame, (hpx, hpy), (px, py), Color.HEAD_COLOR, 1)
+                cv2.circle(vis_frame, (hpx, hpy), 5, Color.HEAD_COLOR, -1)
+                
+            if result.eye_result and result.eye_result.valid:
+                ex, ey = result.eye_result.position
+                epx, epy = int(ex * w), int(ey * h)
+                cv2.line(vis_frame, (epx, epy), (px, py), Color.EYE_COLOR, 1)
+                cv2.circle(vis_frame, (epx, epy), 5, Color.EYE_COLOR, -1)
             
         return vis_frame
