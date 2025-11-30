@@ -78,12 +78,16 @@ class EyeTracker(BaseTracker):
         avg_gaze_x = (left_gaze[0] + right_gaze[0]) / 2.0
         avg_gaze_y = (left_gaze[1] + right_gaze[1]) / 2.0
         
-        # Apply sensitivity
-        sens = self.config.tracking.eye_sensitivity
-        # Center 0.5, map deviations
-        # Assume gaze ratio is 0-1, centered at 0.5
-        norm_x = 0.5 + (avg_gaze_x - 0.5) * sens
-        norm_y = 0.5 + (avg_gaze_y - 0.5) * sens
+        # Apply sensitivity / Active Range
+        # We want to map the active range (e.g. center +/- 0.3) to 0-1
+        range_x = self.config.tracking.eye_active_range_x
+        range_y = self.config.tracking.eye_active_range_y
+        
+        # norm = 0.5 + (val - 0.5) * (1 / range)
+        # If range is 1.0, we use full 0-1. If range is 0.5, we use 0.25-0.75 mapped to 0-1.
+        
+        norm_x = 0.5 + (avg_gaze_x - 0.5) * (1.0 / range_x)
+        norm_y = 0.5 + (avg_gaze_y - 0.5) * (1.0 / range_y)
         
         norm_x = max(0.0, min(1.0, norm_x))
         norm_y = max(0.0, min(1.0, norm_y))

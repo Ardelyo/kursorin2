@@ -10,14 +10,26 @@ import numpy as np
 from kursorin.config import KursorinConfig
 
 
+from kursorin.utils.one_euro_filter import OneEuroFilter
+
 class CursorSmoother:
     """
-    Smooths cursor movement using exponential smoothing or Kalman filter.
+    Smooths cursor movement using One Euro Filter.
     """
     
     def __init__(self, config: KursorinConfig):
         self.config = config
         self.prev_pos = None
+        
+        # Initialize filters for X and Y
+        self.filter_x = OneEuroFilter(
+            min_cutoff=config.smoothing.one_euro_min_cutoff,
+            beta=config.smoothing.one_euro_beta
+        )
+        self.filter_y = OneEuroFilter(
+            min_cutoff=config.smoothing.one_euro_min_cutoff,
+            beta=config.smoothing.one_euro_beta
+        )
         
     def smooth(self, position: Tuple[float, float]) -> Tuple[float, float]:
         """
@@ -29,18 +41,16 @@ class CursorSmoother:
         Returns:
             Smoothed (x, y) position.
         """
-        current_pos = np.array(position)
+        x, y = position
         
-        if self.prev_pos is None:
-            self.prev_pos = current_pos
-            return tuple(current_pos)
-            
-        # Simple Exponential Smoothing
-        alpha = 1.0 - self.config.smoothing.smoothing_factor
+        # Update filter parameters in case config changed
+        self.filter_x.min_cutoff = self.config.smoothing.one_euro_min_cutoff
+        self.filter_x.beta = self.config.smoothing.one_euro_beta
+        self.filter_y.min_cutoff = self.config.smoothing.one_euro_min_cutoff
+        self.filter_y.beta = self.config.smoothing.one_euro_beta
         
-        # Dynamic smoothing could be implemented here based on velocity
+        # Filter
+        smoothed_x = self.filter_x.filter(x)
+        smoothed_y = self.filter_y.filter(y)
         
-        smoothed_pos = alpha * current_pos + (1 - alpha) * self.prev_pos
-        self.prev_pos = smoothed_pos
-        
-        return tuple(smoothed_pos)
+        return (smoothed_x, smoothed_y)

@@ -121,15 +121,17 @@ class HeadTracker(BaseTracker):
         
         pitch, yaw, roll = angles[0], angles[1], angles[2]
         
-        # Map yaw/pitch to screen coordinates (normalized 0-1)
-        # Sensitivity controls how much head movement is needed
-        sens_x = self.config.tracking.head_sensitivity_x
-        sens_y = self.config.tracking.head_sensitivity_y
+        # Map yaw/pitch to screen coordinates using Active Range
+        # Range: [-active_range, +active_range] -> [0, 1]
+        range_x = self.config.tracking.head_active_range_x
+        range_y = self.config.tracking.head_active_range_y
         
-        # Center is 0.5, 0.5. Yaw 0 -> 0.5.
-        # Yaw range approx -30 to 30 degrees
-        norm_x = 0.5 + (yaw / 60.0) * sens_x
-        norm_y = 0.5 + (pitch / 60.0) * sens_y
+        # Normalize: (angle + range) / (2 * range)
+        # Yaw is inverted (looking left = positive yaw in some systems, check coordinate system)
+        # Here we assume standard mapping and clamp
+        
+        norm_x = 0.5 + (yaw / (2 * range_x)) * self.config.tracking.head_sensitivity_x
+        norm_y = 0.5 + (pitch / (2 * range_y)) * self.config.tracking.head_sensitivity_y
         
         # Clamp
         norm_x = max(0.0, min(1.0, norm_x))

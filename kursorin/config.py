@@ -24,6 +24,10 @@ class TrackingConfig(BaseModel):
     head_enabled: bool = True
     head_sensitivity_x: float = Field(default=2.5, ge=0.5, le=5.0)
     head_sensitivity_y: float = Field(default=2.0, ge=0.5, le=5.0)
+    # Active range in degrees (smaller = easier to reach edges)
+    head_active_range_x: float = Field(default=30.0, ge=10.0, le=60.0)
+    head_active_range_y: float = Field(default=20.0, ge=10.0, le=45.0)
+    
     head_dead_zone: float = Field(default=0.02, ge=0.0, le=0.1)
     head_smoothing: float = Field(default=0.8, ge=0.0, le=0.99)
     
@@ -34,6 +38,10 @@ class TrackingConfig(BaseModel):
     # Eye tracking
     eye_enabled: bool = True
     eye_sensitivity: float = Field(default=1.0, ge=0.5, le=2.0)
+    # Active range ratio (0.0-1.0). Smaller = easier to reach edges.
+    eye_active_range_x: float = Field(default=0.6, ge=0.2, le=1.0)
+    eye_active_range_y: float = Field(default=0.5, ge=0.2, le=1.0)
+    
     eye_calibrated: bool = False
     eye_blink_threshold: float = Field(default=0.2, ge=0.1, le=0.4)
     eye_blink_duration_min: float = Field(default=0.05, ge=0.02, le=0.2)
@@ -95,10 +103,15 @@ class SmoothingConfig(BaseModel):
     smoothing_factor: float = Field(default=0.7, ge=0.0, le=0.99)
     dead_zone_px: int = Field(default=5, ge=0, le=30)
     
-    # Kalman filter settings
-    use_kalman: bool = True
+    # Kalman filter settings (Legacy)
+    use_kalman: bool = False
     kalman_process_noise: float = Field(default=0.03, ge=0.001, le=0.1)
     kalman_measurement_noise: float = Field(default=0.1, ge=0.01, le=1.0)
+    
+    # One Euro Filter settings (New)
+    use_one_euro: bool = True
+    one_euro_min_cutoff: float = Field(default=1.0, ge=0.1, le=5.0)
+    one_euro_beta: float = Field(default=0.005, ge=0.0, le=1.0)
     
     # Velocity-based smoothing
     velocity_adaptive: bool = True
