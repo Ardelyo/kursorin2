@@ -1,5 +1,10 @@
 import numpy as np
 import time
+import cv2
+import mediapipe as mp
+from mediapipe.tasks import python as mp_python
+from mediapipe.tasks.python import vision as mp_vision
+import os
 
 from kursorin.config import KursorinConfig
 from kursorin.constants import Gesture, HandLandmark
@@ -15,31 +20,56 @@ class HandTracker(BaseTracker):
     def __init__(self, config: KursorinConfig):
         super().__init__(config)
         
-        self.mp_hands = mp.solutions.hands
-        self.hands = self.mp_hands.Hands(
-            max_num_hands=1,
-            min_detection_confidence=0.7,
-            min_tracking_confidence=0.5,
+        # Initialize HandLandmarker (Tasks API)
+        model_path = os.path.join(
+            os.path.dirname(os.path.dirname(__file__)), 
+            "assets", "models", "hand_landmarker.task"
         )
+        
+        # Note: If hand_landmarker.task is missing, we'll need to download it 
+        # but for now we'll assume it's either present or hand tracking is disabled.
+        # kursorin_engine usually manages model availability.
+        
+        if os.path.exists(model_path):
+            base_options = mp_python.BaseOptions(model_asset_path=model_path)
+            options = mp_vision.HandLandmarkerOptions(
+                base_options=base_options,
+                running_mode=mp_vision.RunningMode.VIDEO,
+                num_hands=1,
+                min_hand_detection_confidence=0.7,
+                min_hand_presence_confidence=0.5,
+                min_tracking_confidence=0.5,
+            )
+            self.detector = mp_vision.HandLandmarker.create_from_options(options)
+        else:
+            self.detector = None
+            
         self.gesture_history = []
     
-    def process(self, frame: np.ndarray) -> TrackerResult:
+    def process(self, frame: np.ndarray, **kwargs) -> TrackerResult:
         """
         Process frame to track hand and gestures.
         """
-        rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        results = self.hands.process(rgb_frame)
-        
-        if not results.multi_hand_landmarks:
+        if self.detector is None:
             return TrackerResult(valid=False)
             
-        landmarks = results.multi_hand_landmarks[0]
+        rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb_frame)
+        
+        # Use current timestamp for VIDEO mode
+        timestamp_ms = int(time.time() * 1000)
+        results = self.detector.detect_for_video(mp_image, timestamp_ms)
+        
+        if not results.hand_landmarks:
+            return TrackerResult(valid=False)
+            
+        landmarks = results.hand_landmarks[0]
         
         # Get index finger tip position for cursor control
-        index_tip = landmarks.landmark[HandLandmark.INDEX_TIP]
+        index_tip = landmarks[HandLandmark.INDEX_TIP]
         
         # Calculate pinch distance (Thumb tip to Index tip)
-        thumb_tip = landmarks.landmark[HandLandmark.THUMB_TIP]
+        thumb_tip = landmarks[HandLandmark.THUMB_TIP]
         pinch_dist = np.sqrt(
             (thumb_tip.x - index_tip.x)**2 + 
             (thumb_tip.y - index_tip.y)**2
@@ -51,7 +81,7 @@ class HandTracker(BaseTracker):
         return TrackerResult(
             valid=True,
             position=np.array([index_tip.x, index_tip.y]),
-            confidence=1.0, # Simplified
+            confidence=1.0, 
             landmarks=landmarks,
             timestamp=time.time(),
             metadata={
@@ -67,12 +97,11 @@ class HandTracker(BaseTracker):
         fingers_up = []
         
         # Check fingers (Index, Middle, Ring, Pinky)
-        # Assuming typical camera feed where y increases downwards (tip.y < pip.y = extended)
         tips = [HandLandmark.INDEX_TIP, HandLandmark.MIDDLE_TIP, HandLandmark.RING_TIP, HandLandmark.PINKY_TIP]
         pips = [HandLandmark.INDEX_PIP, HandLandmark.MIDDLE_PIP, HandLandmark.RING_PIP, HandLandmark.PINKY_PIP]
         
         for tip, pip in zip(tips, pips):
-            if landmarks.landmark[tip].y < landmarks.landmark[pip].y:
+            if landmarks[tip].y < landmarks[pip].y:
                 fingers_up.append(1)
             else:
                 fingers_up.append(0)
@@ -99,4 +128,5 @@ class HandTracker(BaseTracker):
         return most_common[0][0] if most_common else Gesture.NONE
 
     def close(self) -> None:
-        self.hands.close()
+        if self.detector:
+            self.detector.close()

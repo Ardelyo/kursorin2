@@ -1,5 +1,6 @@
 import numpy as np
 import time
+import cv2
 
 from kursorin.config import KursorinConfig
 from kursorin.constants import (
@@ -20,21 +21,9 @@ class EyeTracker(BaseTracker):
     
     def __init__(self, config: KursorinConfig):
         super().__init__(config)
-        # We assume FaceMesh is handled externally or we create a new one if needed.
-        # Ideally, we should share the FaceMesh instance with HeadTracker to avoid double processing.
-        # For this implementation, we'll create a new one if not provided, but in a real system
-        # we might want to pass the landmarks from HeadTracker to EyeTracker.
-        # However, to keep trackers independent as per BaseTracker interface, we'll re-initialize
-        # or we could modify the architecture to pass landmarks.
-        # Let's assume independent for now, but note the performance cost.
         
-        import mediapipe as mp
-        self.face_mesh = mp.solutions.face_mesh.FaceMesh(
-            max_num_faces=1,
-            refine_landmarks=True,
-            min_detection_confidence=0.5,
-            min_tracking_confidence=0.5,
-        )
+        # Legacy FaceMesh is no longer used, we consume shared results from FaceLandmarker
+        self.face_mesh = None
         
         # Calibration data (placeholder)
         self.calibration_matrix = None
@@ -48,39 +37,36 @@ class EyeTracker(BaseTracker):
         if face_mesh_results is not None:
             results = face_mesh_results
         else:
-            rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            results = self.face_mesh.process(rgb_frame)
+            # Independent processing is deprecated in this engine version
+            return TrackerResult(valid=False)
         
-        if not results.multi_face_landmarks:
+        # FaceLandmarkerResult has .face_landmarks list
+        if not hasattr(results, 'face_landmarks') or not results.face_landmarks:
             return TrackerResult(valid=False)
             
-        landmarks = results.multi_face_landmarks[0]
+        face_landmarks = results.face_landmarks[0]
         h, w, _ = frame.shape
         
         # Calculate Eye Aspect Ratio (EAR) for blink detection
-        left_ear = self._calculate_ear(landmarks, LEFT_EYE_EAR_LANDMARKS, w, h)
-        right_ear = self._calculate_ear(landmarks, RIGHT_EYE_EAR_LANDMARKS, w, h)
+        left_ear = self._calculate_ear(face_landmarks, LEFT_EYE_EAR_LANDMARKS, w, h)
+        right_ear = self._calculate_ear(face_landmarks, RIGHT_EYE_EAR_LANDMARKS, w, h)
         avg_ear = (left_ear + right_ear) / 2.0
         
         # Gaze estimation (simplified using iris center relative to eye corners)
         # This is a basic implementation. A robust one requires calibration.
         
         # Left eye gaze
-        left_gaze = self._get_iris_position(landmarks, LEFT_IRIS_LANDMARKS, LEFT_EYE_EAR_LANDMARKS, w, h)
+        left_gaze = self._get_iris_position(face_landmarks, LEFT_IRIS_LANDMARKS, LEFT_EYE_EAR_LANDMARKS, w, h)
         # Right eye gaze
-        right_gaze = self._get_iris_position(landmarks, RIGHT_IRIS_LANDMARKS, RIGHT_EYE_EAR_LANDMARKS, w, h)
+        right_gaze = self._get_iris_position(face_landmarks, RIGHT_IRIS_LANDMARKS, RIGHT_EYE_EAR_LANDMARKS, w, h)
         
         # Average gaze
         avg_gaze_x = (left_gaze[0] + right_gaze[0]) / 2.0
         avg_gaze_y = (left_gaze[1] + right_gaze[1]) / 2.0
         
         # Apply sensitivity / Active Range
-        # We want to map the active range (e.g. center +/- 0.3) to 0-1
         range_x = self.config.tracking.eye_active_range_x
         range_y = self.config.tracking.eye_active_range_y
-        
-        # norm = 0.5 + (val - 0.5) * (1 / range)
-        # If range is 1.0, we use full 0-1. If range is 0.5, we use 0.25-0.75 mapped to 0-1.
         
         norm_x = 0.5 + (avg_gaze_x - 0.5) * (1.0 / range_x)
         norm_y = 0.5 + (avg_gaze_y - 0.5) * (1.0 / range_y)
@@ -92,7 +78,7 @@ class EyeTracker(BaseTracker):
             valid=True,
             position=np.array([norm_x, norm_y]),
             confidence=1.0,
-            landmarks=landmarks,
+            landmarks=face_landmarks,
             timestamp=time.time(),
             metadata={
                 "ear": avg_ear,
@@ -110,11 +96,11 @@ class EyeTracker(BaseTracker):
             return np.sqrt((p1.x - p2.x)**2 + (p1.y - p2.y)**2)
             
         # Vertical distances
-        v1 = dist(landmarks.landmark[indices[1]], landmarks.landmark[indices[5]])
-        v2 = dist(landmarks.landmark[indices[2]], landmarks.landmark[indices[4]])
+        v1 = dist(landmarks[indices[1]], landmarks[indices[5]])
+        v2 = dist(landmarks[indices[2]], landmarks[indices[4]])
         
         # Horizontal distance
-        h_dist = dist(landmarks.landmark[indices[0]], landmarks.landmark[indices[3]])
+        h_dist = dist(landmarks[indices[0]], landmarks[indices[3]])
         
         if h_dist == 0:
             return 0.0
@@ -127,15 +113,15 @@ class EyeTracker(BaseTracker):
         Returns (x_ratio, y_ratio) where 0 is left/top and 1 is right/bottom.
         """
         # Iris center
-        iris_center = landmarks.landmark[iris_indices[0]]
+        iris_center = landmarks[iris_indices[0]]
         
         # Eye corners
-        inner = landmarks.landmark[eye_indices[3]] # Inner corner (approx)
-        outer = landmarks.landmark[eye_indices[0]] # Outer corner (approx)
+        inner = landmarks[eye_indices[3]] # Inner corner (approx)
+        outer = landmarks[eye_indices[0]] # Outer corner (approx)
         
         # Eye top/bottom
-        top = landmarks.landmark[eye_indices[1]] # Top (approx)
-        bottom = landmarks.landmark[eye_indices[4]] # Bottom (approx)
+        top = landmarks[eye_indices[1]] # Top (approx)
+        bottom = landmarks[eye_indices[4]] # Bottom (approx)
         
         # Horizontal ratio
         eye_width = abs(inner.x - outer.x)
@@ -157,4 +143,5 @@ class EyeTracker(BaseTracker):
         return (x_ratio, y_ratio)
 
     def close(self) -> None:
-        self.face_mesh.close()
+        if self.face_mesh:
+            self.face_mesh.close()

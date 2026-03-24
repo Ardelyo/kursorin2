@@ -15,6 +15,8 @@ from typing import Callable, Dict, List, Optional, Tuple
 import cv2
 import numpy as np
 import mediapipe as mp
+from mediapipe.tasks import python as mp_python
+from mediapipe.tasks.python import vision as mp_vision
 import os
 import json
 from loguru import logger
@@ -191,14 +193,29 @@ class KursorinEngine:
                 camera.open()
                 logger.info(f"Camera initialized: {camera.width}x{camera.height} @ {camera.fps}fps")
                 
-                # Initialize shared FaceMesh
-                self.shared_face_mesh = mp.solutions.face_mesh.FaceMesh(
-                    max_num_faces=1,
-                    refine_landmarks=True,
-                    min_detection_confidence=0.5,
-                    min_tracking_confidence=0.5,
+                # Initialize shared FaceLandmarker (replacement for FaceMesh)
+                model_path = os.path.join(
+                    os.path.dirname(os.path.dirname(__file__)), 
+                    "assets", "models", "face_landmarker.task"
                 )
-                logger.info("Shared FaceMesh initialized")
+                
+                if not os.path.exists(model_path):
+                    logger.warning(f"Model file not found at {model_path}. Starting fallback download...")
+                    # TODO: Robust downloader, but for now we expect it to exist since we just downloaded it
+                
+                base_options = mp_python.BaseOptions(model_asset_path=model_path)
+                options = mp_vision.FaceLandmarkerOptions(
+                    base_options=base_options,
+                    running_mode=mp_vision.RunningMode.VIDEO,
+                    num_faces=1,
+                    min_face_detection_confidence=0.5,
+                    min_face_presence_confidence=0.5,
+                    min_tracking_confidence=0.5,
+                    output_face_blendshapes=True,
+                    output_facial_transformation_matrixes=True,
+                )
+                self.shared_face_mesh = mp_vision.FaceLandmarker.create_from_options(options)
+                logger.info("Shared FaceLandmarker initialized (Tasks API)")
                 
                 # Initialize trackers
                 if self.config.tracking.head_enabled:

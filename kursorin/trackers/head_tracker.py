@@ -1,5 +1,6 @@
 import numpy as np
 import time
+import cv2
 
 from kursorin.config import KursorinConfig
 from kursorin.constants import (
@@ -20,13 +21,8 @@ class HeadTracker(BaseTracker):
     def __init__(self, config: KursorinConfig):
         super().__init__(config)
         
-        import mediapipe as mp
-        self.face_mesh = mp.solutions.face_mesh.FaceMesh(
-            max_num_faces=1,
-            refine_landmarks=True,
-            min_detection_confidence=0.5,
-            min_tracking_confidence=0.5,
-        )
+        # Legacy FaceMesh is no longer used, we consume shared results from FaceLandmarker
+        self.face_mesh = None 
         
         # 3D model points for PnP
         self.model_points = np.array([
@@ -66,14 +62,16 @@ class HeadTracker(BaseTracker):
         if face_mesh_results is not None:
             results = face_mesh_results
         else:
-            # Convert to RGB for independent MediaPipe
-            rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            results = self.face_mesh.process(rgb_frame)
-        
-        if not results.multi_face_landmarks:
+            # Independent processing is deprecated in this engine version, 
+            # as FaceLandmarker setup is complex. Return invalid for now.
             return TrackerResult(valid=False)
         
-        landmarks = results.multi_face_landmarks[0]
+        # FaceLandmarkerResult has .face_landmarks list
+        if not hasattr(results, 'face_landmarks') or not results.face_landmarks:
+            return TrackerResult(valid=False)
+        
+        # Landmarks for first face
+        face_landmarks = results.face_landmarks[0]
         
         # Extract 2D image points
         image_points = []
@@ -82,7 +80,7 @@ class HeadTracker(BaseTracker):
             "left_mouth_corner", "right_mouth_corner"
         ]:
             idx = FACE_MODEL_LANDMARK_INDICES[key]
-            lm = landmarks.landmark[idx]
+            lm = face_landmarks[idx] # In Tasks API, face_landmarks[0] is a list of landmark objects
             image_points.append((lm.x * w, lm.y * h))
             
         image_points = np.array(image_points, dtype=np.float64)
@@ -137,8 +135,8 @@ class HeadTracker(BaseTracker):
         return TrackerResult(
             valid=True,
             position=np.array([norm_x, norm_y]),
-            confidence=1.0,  # MediaPipe is generally confident if it detects a face
-            landmarks=landmarks,
+            confidence=1.0, 
+            landmarks=face_landmarks,
             timestamp=time.time(),
             metadata={
                 "pitch": pitch,
@@ -150,4 +148,5 @@ class HeadTracker(BaseTracker):
         )
     
     def close(self) -> None:
-        self.face_mesh.close()
+        if self.face_mesh:
+            self.face_mesh.close()
