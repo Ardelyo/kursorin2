@@ -9,6 +9,7 @@ from textual.containers import Container, Horizontal, Vertical, Grid
 from textual.widgets import Static, Button, Label, Rule
 from textual.widget import Widget
 
+from kursorin import __version__
 from kursorin.tui.widgets.status_indicator import StatusIndicator
 
 
@@ -57,7 +58,7 @@ class DashboardScreen(Container):
             "[bold #06d6a0]⬡ Dashboard[/]  [#576574]System overview & quick actions[/]",
             classes="section-title"
         )
-        yield Rule(style="#0d2137")
+        yield Rule()
 
         # Status row
         with Horizontal(id="status-row"):
@@ -76,13 +77,13 @@ class DashboardScreen(Container):
             yield StatCard("—", "FPS", id="stat-fps")
             yield StatCard("—", "Latency", id="stat-latency")
             yield StatCard("—", "Uptime", id="stat-uptime")
-            yield StatCard("v1.0.0", "Version", id="stat-version")
+            yield StatCard(f"v{__version__}", "Version", id="stat-version")
 
         yield Static("")  # spacer
 
         # Quick actions
         yield Static("[bold #06d6a0]⚡ Quick Actions[/]", classes="section-title")
-        yield Rule(style="#0d2137")
+        yield Rule()
 
         with Vertical(id="actions"):
             yield Button(
@@ -105,7 +106,7 @@ class DashboardScreen(Container):
 
         # Activity log
         yield Static("[bold #06d6a0]📋 Activity Log[/]", classes="section-title")
-        yield Rule(style="#0d2137")
+        yield Rule()
         yield Static(
             "[#576574]System initialized. Ready for tracking.[/]\n"
             "[#576574]Run diagnostics with [bold]Doctor[/bold] screen.[/]",

@@ -26,8 +26,8 @@ _STRINGS: Dict[str, Dict[str, str]] = {
         "id": "Sistem Interaksi Manusia-Komputer Berbasis Webcam",
     },
     "cli.version_line": {
-        "en": "v1.0.0 · Hands-free cursor control via head, hand & eye tracking",
-        "id": "v1.0.0 · Kontrol kursor tanpa sentuhan melalui pelacakan kepala, tangan & mata",
+        "en": "v1.2.9 · Hands-free cursor control via head, hand & eye tracking",
+        "id": "v1.2.9 · Kontrol kursor tanpa sentuhan melalui pelacakan kepala, tangan & mata",
     },
     "cli.cmd.start": {
         "en": "Start tracking",
@@ -666,8 +666,8 @@ _STRINGS: Dict[str, Dict[str, str]] = {
         "id": "Git tidak ditemukan. Silakan pasang Git untuk pembaruan otomatis.",
     },
     "update.error_repo": {
-        "en": "Not a Git repository. Updates disabled.",
-        "id": "Bukan repositori Git. Pembaruan dinonaktifkan.",
+        "en": "Not a Git repository. To enable automatic updates, please clone via 'git clone'.",
+        "id": "Bukan repositori Git. Untuk mengaktifkan pembaruan otomatis, silakan klon via 'git clone'.",
     },
     "update.error_local": {
         "en": "Local changes detected. Use [bold]--force[/bold] to overwrite.",
@@ -739,7 +739,9 @@ def save_lang(lang: str):
         data = {}
         if cfg_path.exists():
             with open(cfg_path, "r") as f:
-                data = yaml.safe_load(f) or {}
+                loaded = yaml.safe_load(f)
+                if isinstance(loaded, dict):
+                    data = loaded
 
         data["language"] = lang
 

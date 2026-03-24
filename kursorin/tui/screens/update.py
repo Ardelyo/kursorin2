@@ -32,7 +32,7 @@ class UpdateScreen(Container):
             "[bold #06d6a0]🔄 Updates[/]  [#576574]Keep KURSORIN up to date[/]",
             classes="section-title"
         )
-        yield Rule(style="#0d2137")
+        yield Rule()
 
         yield Static(
             f"[bold #c8d6e5]Current Version:[/] [#06d6a0]v{__version__}[/]",
@@ -58,7 +58,7 @@ class UpdateScreen(Container):
 
         yield Static("")
         yield Static("[bold #06d6a0]📋 Update Log[/]", classes="section-title")
-        yield Rule(style="#0d2137")
+        yield Rule()
         yield VerticalScroll(id="update-log")
 
     async def check_updates(self) -> None:
@@ -75,7 +75,7 @@ class UpdateScreen(Container):
                 return
 
             if not updater.is_git_repo():
-                await log.mount(Static("[#ee5a6f]✖ Not a Git repository.[/]"))
+                await log.mount(Static("[#ee5a6f]✖ Not a Git repository. To enable automatic updates, please clone via 'git clone'.[/]"))
                 return
 
             available, msg = updater.check_for_updates()
