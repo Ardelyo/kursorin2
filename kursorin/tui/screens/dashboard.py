@@ -25,7 +25,7 @@ class StatCard(Widget):
         content-align: center middle;
     }
     StatCard:hover {
-        border: round #3b82f6 60%;
+        border: round #1d4170;
     }
     """
 

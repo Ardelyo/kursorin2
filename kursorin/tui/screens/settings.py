@@ -25,7 +25,7 @@ class SettingRow(Horizontal):
         background: transparent;
     }
     SettingRow:hover {
-        background: #1e3a5f 20%;
+        background: #0d1a2e;
     }
     .setting-label {
         width: 1fr;
