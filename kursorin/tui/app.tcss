@@ -1,0 +1,380 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   KURSORIN TUI — Arctic Terminal Theme
+   Deep Navy (#060b14) + Electric Cyan (#06d6a0)
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── Global ────────────────────────────────────────────────────────────── */
+
+Screen {
+    background: #060b14;
+    color: #c8d6e5;
+}
+
+/* ── Header ────────────────────────────────────────────────────────────── */
+
+#header-bar {
+    dock: top;
+    height: 3;
+    background: #0a1628;
+    color: #06d6a0;
+    text-style: bold;
+    content-align: center middle;
+    border-bottom: solid #0d2137;
+}
+
+#header-bar .title {
+    color: #06d6a0;
+    text-style: bold;
+}
+
+#header-bar .version {
+    color: #576574;
+    text-style: italic;
+}
+
+/* ── Sidebar ───────────────────────────────────────────────────────────── */
+
+#sidebar {
+    dock: left;
+    width: 28;
+    background: #0a1628;
+    border-right: solid #0d2137;
+    padding: 1 0;
+}
+
+#sidebar-logo {
+    height: auto;
+    content-align: center middle;
+    text-align: center;
+    color: #06d6a0;
+    padding: 0 1 1 1;
+}
+
+.nav-btn {
+    width: 100%;
+    height: 3;
+    background: transparent;
+    color: #576574;
+    text-style: bold;
+    border: none;
+    margin: 0 1;
+    content-align: left middle;
+    padding: 0 2;
+}
+
+.nav-btn:hover {
+    background: #0d2137;
+    color: #06d6a0;
+}
+
+.nav-btn:focus {
+    background: #0d2137;
+    color: #06d6a0;
+    text-style: bold;
+}
+
+.nav-btn.-active {
+    background: #06d6a0 15%;
+    color: #06d6a0;
+    border-left: thick #06d6a0;
+}
+
+/* ── Content Area ──────────────────────────────────────────────────────── */
+
+#content-area {
+    background: #060b14;
+    padding: 1 2;
+}
+
+/* ── Footer / Status Bar ──────────────────────────────────────────────── */
+
+#footer-bar {
+    dock: bottom;
+    height: 1;
+    background: #0a1628;
+    color: #576574;
+    content-align: center middle;
+    border-top: solid #0d2137;
+}
+
+.footer-key {
+    color: #06d6a0;
+    text-style: bold;
+}
+
+.footer-desc {
+    color: #576574;
+}
+
+/* ── Dashboard ─────────────────────────────────────────────────────────── */
+
+.dashboard-grid {
+    layout: grid;
+    grid-size: 2;
+    grid-gutter: 1;
+    height: auto;
+}
+
+.stat-card {
+    height: 7;
+    background: #0a1628;
+    border: round #0d2137;
+    padding: 1 2;
+    content-align: center middle;
+}
+
+.stat-card:hover {
+    border: round #06d6a0 40%;
+}
+
+.stat-value {
+    color: #06d6a0;
+    text-style: bold;
+    text-align: center;
+}
+
+.stat-label {
+    color: #576574;
+    text-align: center;
+}
+
+.action-btn {
+    width: 100%;
+    height: 3;
+    margin: 0 0 1 0;
+    background: #0d2137;
+    color: #06d6a0;
+    text-style: bold;
+    border: tall #06d6a0 30%;
+}
+
+.action-btn:hover {
+    background: #06d6a0 20%;
+    border: tall #06d6a0;
+}
+
+.action-btn.-primary {
+    background: #06d6a0;
+    color: #060b14;
+    border: tall #06d6a0;
+}
+
+.action-btn.-primary:hover {
+    background: #06d6a0 80%;
+}
+
+.action-btn.-danger {
+    background: #2d1f2f;
+    color: #ee5a6f;
+    border: tall #ee5a6f 30%;
+}
+
+.action-btn.-danger:hover {
+    background: #ee5a6f 20%;
+    border: tall #ee5a6f;
+}
+
+/* ── Section headers ───────────────────────────────────────────────────── */
+
+.section-title {
+    color: #06d6a0;
+    text-style: bold;
+    padding: 1 0 0 0;
+    margin: 0 0 1 0;
+}
+
+.section-divider {
+    height: 1;
+    background: #0d2137;
+    margin: 1 0;
+}
+
+/* ── Settings ──────────────────────────────────────────────────────────── */
+
+.settings-group {
+    background: #0a1628;
+    border: round #0d2137;
+    padding: 1 2;
+    margin: 0 0 1 0;
+    height: auto;
+}
+
+.settings-group-title {
+    color: #06d6a0;
+    text-style: bold;
+    margin: 0 0 1 0;
+}
+
+.setting-row {
+    height: 3;
+    layout: horizontal;
+}
+
+.setting-label {
+    width: 1fr;
+    color: #c8d6e5;
+    content-align: left middle;
+}
+
+.setting-value {
+    width: auto;
+    min-width: 16;
+    content-align: right middle;
+}
+
+/* ── Doctor checks ─────────────────────────────────────────────────────── */
+
+.check-item {
+    height: 1;
+    margin: 0 0 0 0;
+}
+
+.check-pass {
+    color: #06d6a0;
+}
+
+.check-fail {
+    color: #ee5a6f;
+}
+
+.check-pending {
+    color: #576574;
+}
+
+/* ── Log / Output panel ────────────────────────────────────────────────── */
+
+.log-panel {
+    background: #050a12;
+    border: round #0d2137;
+    padding: 1;
+    height: 1fr;
+    overflow-y: auto;
+}
+
+.log-line {
+    color: #576574;
+}
+
+.log-line.-info {
+    color: #c8d6e5;
+}
+
+.log-line.-success {
+    color: #06d6a0;
+}
+
+.log-line.-error {
+    color: #ee5a6f;
+}
+
+.log-line.-warning {
+    color: #f0932b;
+}
+
+/* ── Input ─────────────────────────────────────────────────────────────── */
+
+Input {
+    background: #050a12;
+    color: #c8d6e5;
+    border: tall #0d2137;
+}
+
+Input:focus {
+    border: tall #06d6a0;
+}
+
+/* ── Switches / Toggles ────────────────────────────────────────────────── */
+
+Switch {
+    background: #0d2137;
+}
+
+Switch.-on {
+    background: #06d6a0;
+}
+
+/* ── ProgressBar ───────────────────────────────────────────────────────── */
+
+ProgressBar Bar {
+    color: #06d6a0;
+    background: #0d2137;
+}
+
+/* ── Tabs ──────────────────────────────────────────────────────────────── */
+
+Tabs {
+    background: #0a1628;
+}
+
+Tab {
+    color: #576574;
+    background: #0a1628;
+}
+
+Tab:hover {
+    color: #c8d6e5;
+}
+
+Tab.-active {
+    color: #06d6a0;
+    text-style: bold;
+}
+
+/* ── DataTable ─────────────────────────────────────────────────────────── */
+
+DataTable {
+    background: #0a1628;
+}
+
+DataTable > .datatable--header {
+    color: #06d6a0;
+    text-style: bold;
+    background: #0d2137;
+}
+
+DataTable > .datatable--cursor {
+    background: #06d6a0 20%;
+    color: #c8d6e5;
+}
+
+/* ── Welcome / Splash ──────────────────────────────────────────────────── */
+
+#welcome-panel {
+    content-align: center middle;
+    height: 100%;
+}
+
+#welcome-ascii {
+    color: #06d6a0;
+    text-style: bold;
+    text-align: center;
+}
+
+#welcome-subtitle {
+    color: #576574;
+    text-align: center;
+    margin: 1 0;
+}
+
+/* ── Status indicator ──────────────────────────────────────────────────── */
+
+.status-dot {
+    width: 3;
+    height: 1;
+}
+
+.status-dot.-online {
+    color: #06d6a0;
+}
+
+.status-dot.-warning {
+    color: #f0932b;
+}
+
+.status-dot.-offline {
+    color: #ee5a6f;
+}
+
+.status-dot.-idle {
+    color: #576574;
+}

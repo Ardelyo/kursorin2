@@ -59,25 +59,34 @@ def cli(ctx):
     """
     init_lang()
 
-    # If no subcommand provided, show banner and available commands
+    # If no subcommand provided, launch interactive TUI
     if ctx.invoked_subcommand is None:
-        console.print(BANNER)
-        
-        table = Table(title=t('cli.quick_ref'), show_header=True, header_style="bold cyan")
-        table.add_column("Command", style="cyan", width=20)
-        table.add_column("Description", style="white")
-        
-        table.add_row("kursorin start", t('cli.cmd.start'))
-        table.add_row("kursorin gui", t('cli.cmd.gui'))
-        table.add_row("kursorin config", t('cli.cmd.config'))
-        table.add_row("kursorin status", t('cli.cmd.status'))
-        table.add_row("kursorin doctor", t('cli.cmd.doctor'))
-        table.add_row("kursorin calibrate", t('cli.cmd.calibrate'))
-        table.add_row("kursorin lang", t('cli.cmd.lang'))
-        table.add_row("kursorin info", t('cli.cmd.info'))
-        
-        console.print(Panel(table, border_style=COLORS['accent'], expand=False))
-        console.print(f"\n[{COLORS['muted']}]{t('cli.run_help')}[/]")
+        try:
+            from kursorin.tui.app import run_tui
+            run_tui()
+        except ImportError:
+            # Fallback to static help if textual not installed
+            console.print(BANNER)
+            
+            table = Table(title=t('cli.quick_ref'), show_header=True, header_style="bold cyan")
+            table.add_column("Command", style="cyan", width=20)
+            table.add_column("Description", style="white")
+            
+            table.add_row("kursorin start", t('cli.cmd.start'))
+            table.add_row("kursorin gui", t('cli.cmd.gui'))
+            table.add_row("kursorin config", t('cli.cmd.config'))
+            table.add_row("kursorin status", t('cli.cmd.status'))
+            table.add_row("kursorin doctor", t('cli.cmd.doctor'))
+            table.add_row("kursorin calibrate", t('cli.cmd.calibrate'))
+            table.add_row("kursorin lang", t('cli.cmd.lang'))
+            table.add_row("kursorin update", t('cli.cmd.update'))
+            table.add_row("kursorin info", t('cli.cmd.info'))
+            
+            console.print(Panel(table, border_style=COLORS['accent'], expand=False))
+            console.print(f"\n[{COLORS['muted']}]{t('cli.run_help')}[/]")
+        except Exception as e:
+            console.print(f"[{COLORS['error']}]TUI Error: {e}[/]")
+            console.print(f"[{COLORS['muted']}]Falling back to CLI mode. Use 'kursorin start' etc.[/]")
 
 
 # ─── START ────────────────────────────────────────────────────────────────────

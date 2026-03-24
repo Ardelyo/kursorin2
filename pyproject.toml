@@ -49,6 +49,7 @@ dependencies = [
     "screeninfo>=0.8.0",
     "rich>=13.0.0",
     "customtkinter>=5.2.0",
+    "textual>=0.50.0",
 ]
 
 [project.optional-dependencies]
