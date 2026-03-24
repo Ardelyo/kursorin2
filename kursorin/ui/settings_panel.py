@@ -1,8 +1,5 @@
 """
 KURSORIN Settings Panel
-
-Organized settings interface with tabs for Tracking, Click Methods,
-Camera, Performance, and Appearance.
 """
 
 import customtkinter as ctk
@@ -10,6 +7,7 @@ from typing import Optional, Callable
 
 from kursorin.config import KursorinConfig
 from kursorin.ui.theme import PALETTE, TYPO, SPACING
+from kursorin.i18n import t
 
 
 class SettingsPanel(ctk.CTkFrame):
@@ -31,7 +29,7 @@ class SettingsPanel(ctk.CTkFrame):
         # Header
         header = ctk.CTkLabel(
             self,
-            text="⚙  Settings",
+            text=f"⚙  {t('nav.settings')}",
             font=(TYPO.family_display, TYPO.size_h2, TYPO.weight_bold),
             text_color=PALETTE.fg_primary,
             anchor="w",
@@ -65,7 +63,7 @@ class SettingsPanel(ctk.CTkFrame):
 
         save_btn = ctk.CTkButton(
             btn_frame,
-            text="Save Settings",
+            text=t('settings.save'),
             font=(TYPO.family_body, TYPO.size_body, TYPO.weight_bold),
             fg_color=PALETTE.accent_cyan,
             hover_color=PALETTE.accent_cyan_hover,
@@ -78,7 +76,7 @@ class SettingsPanel(ctk.CTkFrame):
 
         reset_btn = ctk.CTkButton(
             btn_frame,
-            text="Reset Defaults",
+            text=t('settings.reset'),
             font=(TYPO.family_body, TYPO.size_body),
             fg_color=PALETTE.bg_elevated,
             hover_color=PALETTE.border_default,
@@ -92,88 +90,86 @@ class SettingsPanel(ctk.CTkFrame):
     # ── Tab builders ──────────────────────────────────────────────────────
 
     def _build_tracking_tab(self):
-        tab = self.tabview.add("Tracking")
+        tab = self.tabview.add(t('settings.tab_tracking'))
         tab.configure(fg_color=PALETTE.bg_surface)
 
-        # Toggle switches
-        self._add_switch(tab, "Head Tracking", "tracking.head_enabled", self.config.tracking.head_enabled)
-        self._add_switch(tab, "Eye Tracking", "tracking.eye_enabled", self.config.tracking.eye_enabled)
-        self._add_switch(tab, "Hand Tracking", "tracking.hand_enabled", self.config.tracking.hand_enabled)
+        self._add_switch(tab, t('settings.head_tracking'), "tracking.head_enabled", self.config.tracking.head_enabled)
+        self._add_switch(tab, t('settings.eye_tracking'), "tracking.eye_enabled", self.config.tracking.eye_enabled)
+        self._add_switch(tab, t('settings.hand_tracking'), "tracking.hand_enabled", self.config.tracking.hand_enabled)
 
         self._add_separator(tab)
 
-        # Sliders
-        self._add_slider(tab, "Head Sensitivity X", "tracking.head_sensitivity_x",
+        self._add_slider(tab, t('settings.head_sens_gx'), "tracking.head_sensitivity_x",
                          self.config.tracking.head_sensitivity_x, 0.5, 5.0)
-        self._add_slider(tab, "Head Sensitivity Y", "tracking.head_sensitivity_y",
+        self._add_slider(tab, t('settings.head_sens_gy'), "tracking.head_sensitivity_y",
                          self.config.tracking.head_sensitivity_y, 0.5, 5.0)
-        self._add_slider(tab, "Smoothing", "tracking.head_smoothing",
+        self._add_slider(tab, t('settings.smoothing'), "tracking.head_smoothing",
                          self.config.tracking.head_smoothing, 0.0, 0.99)
 
         self._add_separator(tab)
 
-        self._add_switch(tab, "Invert X", "tracking.invert_x", self.config.tracking.invert_x)
-        self._add_switch(tab, "Invert Y", "tracking.invert_y", self.config.tracking.invert_y)
+        self._add_switch(tab, t('settings.invert_x'), "tracking.invert_x", self.config.tracking.invert_x)
+        self._add_switch(tab, t('settings.invert_y'), "tracking.invert_y", self.config.tracking.invert_y)
 
     def _build_click_tab(self):
-        tab = self.tabview.add("Click")
+        tab = self.tabview.add(t('settings.tab_click'))
         tab.configure(fg_color=PALETTE.bg_surface)
 
-        self._add_switch(tab, "Blink Click", "click.blink_click_enabled", self.config.click.blink_click_enabled)
-        self._add_switch(tab, "Dwell Click", "click.dwell_click_enabled", self.config.click.dwell_click_enabled)
-        self._add_switch(tab, "Pinch Click", "click.pinch_click_enabled", self.config.click.pinch_click_enabled)
-        self._add_switch(tab, "Mouth Click", "click.mouth_click_enabled", self.config.click.mouth_click_enabled)
+        self._add_switch(tab, t('settings.blink_click'), "click.blink_click_enabled", self.config.click.blink_click_enabled)
+        self._add_switch(tab, t('settings.dwell_click'), "click.dwell_click_enabled", self.config.click.dwell_click_enabled)
+        self._add_switch(tab, t('settings.pinch_click'), "click.pinch_click_enabled", self.config.click.pinch_click_enabled)
+        self._add_switch(tab, t('settings.mouth_click'), "click.mouth_click_enabled", self.config.click.mouth_click_enabled)
 
         self._add_separator(tab)
 
-        self._add_slider(tab, "Dwell Time (ms)", "click.dwell_time_ms",
+        self._add_slider(tab, t('settings.dwell_time'), "click.dwell_time_ms",
                          self.config.click.dwell_time_ms, 300, 5000)
-        self._add_slider(tab, "Dwell Radius (px)", "click.dwell_radius_px",
+        self._add_slider(tab, t('settings.dwell_radius'), "click.dwell_radius_px",
                          self.config.click.dwell_radius_px, 10, 100)
 
     def _build_camera_tab(self):
-        tab = self.tabview.add("Camera")
+        tab = self.tabview.add(t('settings.tab_camera'))
         tab.configure(fg_color=PALETTE.bg_surface)
 
-        self._add_slider(tab, "Camera Index", "camera.camera_index",
+        self._add_slider(tab, t('settings.camera_index'), "camera.camera_index",
                          self.config.camera.camera_index, 0, 5)
-        self._add_slider(tab, "Target FPS", "camera.target_fps",
+        self._add_slider(tab, t('settings.target_fps'), "camera.target_fps",
                          self.config.camera.target_fps, 15, 120)
 
         self._add_separator(tab)
 
-        self._add_switch(tab, "Mirror Mode", "camera.flip_horizontal", self.config.camera.flip_horizontal)
-        self._add_switch(tab, "Auto Exposure", "camera.auto_exposure", self.config.camera.auto_exposure)
-        self._add_switch(tab, "Auto Focus", "camera.auto_focus", self.config.camera.auto_focus)
+        self._add_switch(tab, t('settings.mirror_mode'), "camera.flip_horizontal", self.config.camera.flip_horizontal)
+        self._add_switch(tab, t('settings.auto_exposure'), "camera.auto_exposure", self.config.camera.auto_exposure)
+        self._add_switch(tab, t('settings.auto_focus'), "camera.auto_focus", self.config.camera.auto_focus)
 
     def _build_performance_tab(self):
-        tab = self.tabview.add("Performance")
+        tab = self.tabview.add(t('settings.tab_performance'))
         tab.configure(fg_color=PALETTE.bg_surface)
 
-        self._add_slider(tab, "Max FPS", "performance.max_fps",
+        self._add_slider(tab, t('settings.max_fps'), "performance.max_fps",
                          self.config.performance.max_fps, 15, 120)
-        self._add_switch(tab, "Multi-Threading", "performance.use_threading",
+        self._add_switch(tab, t('settings.multi_threading'), "performance.use_threading",
                          self.config.performance.use_threading)
-        self._add_switch(tab, "GPU Acceleration", "performance.use_gpu",
+        self._add_switch(tab, t('settings.gpu_accel'), "performance.use_gpu",
                          self.config.performance.use_gpu)
-        self._add_switch(tab, "Power Save Mode", "performance.power_save_mode",
+        self._add_switch(tab, t('settings.power_save'), "performance.power_save_mode",
                          self.config.performance.power_save_mode)
 
     def _build_appearance_tab(self):
-        tab = self.tabview.add("Appearance")
+        tab = self.tabview.add(t('settings.tab_appearance'))
         tab.configure(fg_color=PALETTE.bg_surface)
 
-        self._add_switch(tab, "Show Video Preview", "ui.show_preview", self.config.ui.show_preview)
-        self._add_switch(tab, "Show Overlay", "ui.show_overlay", self.config.ui.show_overlay)
-        self._add_switch(tab, "Cursor Trail", "ui.cursor_trail", self.config.ui.cursor_trail)
-        self._add_switch(tab, "Audio Feedback", "ui.audio_feedback", self.config.ui.audio_feedback)
-        self._add_switch(tab, "Click Sound", "ui.click_sound", self.config.ui.click_sound)
+        self._add_switch(tab, t('settings.show_video'), "ui.show_preview", self.config.ui.show_preview)
+        self._add_switch(tab, t('settings.show_overlay'), "ui.show_overlay", self.config.ui.show_overlay)
+        self._add_switch(tab, t('settings.cursor_trail'), "ui.cursor_trail", self.config.ui.cursor_trail)
+        self._add_switch(tab, t('settings.audio_feedback'), "ui.audio_feedback", self.config.ui.audio_feedback)
+        self._add_switch(tab, t('settings.click_sound_cfg'), "ui.click_sound", self.config.ui.click_sound)
 
         self._add_separator(tab)
 
-        self._add_switch(tab, "High Contrast", "ui.high_contrast", self.config.ui.high_contrast)
-        self._add_switch(tab, "Large UI", "ui.large_ui", self.config.ui.large_ui)
-        self._add_switch(tab, "Show Notifications", "ui.show_notifications", self.config.ui.show_notifications)
+        self._add_switch(tab, t('settings.high_contrast'), "ui.high_contrast", self.config.ui.high_contrast)
+        self._add_switch(tab, t('settings.large_ui'), "ui.large_ui", self.config.ui.large_ui)
+        self._add_switch(tab, t('settings.show_notif'), "ui.show_notifications", self.config.ui.show_notifications)
 
     # ── Widget helpers ────────────────────────────────────────────────────
 
@@ -261,7 +257,6 @@ class SettingsPanel(ctk.CTkFrame):
             attr = parts[-1]
             current = getattr(obj, attr)
 
-            # Type coerce
             if isinstance(current, int) and not isinstance(current, bool):
                 value = int(value)
             elif isinstance(current, float):
@@ -269,7 +264,6 @@ class SettingsPanel(ctk.CTkFrame):
 
             setattr(obj, attr, value)
 
-        # Persist
         from pathlib import Path
         cfg_path = Path.home() / ".kursorin" / "config.yaml"
         self.config.to_file(cfg_path)
@@ -280,7 +274,6 @@ class SettingsPanel(ctk.CTkFrame):
     def _reset(self):
         """Reset to default config."""
         default = KursorinConfig()
-        # Re-read defaults back into vars
         for key, var in self._vars.items():
             parts = key.split(".")
             obj = default
