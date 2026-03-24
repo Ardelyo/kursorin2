@@ -19,13 +19,13 @@ class StatCard(Widget):
     DEFAULT_CSS = """
     StatCard {
         height: 5;
-        background: #0a1628;
-        border: round #0d2137;
+        background: #111827;
+        border: round #1e3a5f;
         padding: 1 2;
         content-align: center middle;
     }
     StatCard:hover {
-        border: round #06d6a0 40%;
+        border: round #3b82f6 60%;
     }
     """
 
@@ -35,7 +35,7 @@ class StatCard(Widget):
         self._label = label
 
     def render(self) -> str:
-        return f"[bold #06d6a0]{self._value}[/]\n[#576574]{self._label}[/]"
+        return f"[bold #3b82f6]{self._value}[/]\n[#64748b]{self._label}[/]"
 
     def update_value(self, value: str):
         self._value = value
@@ -55,7 +55,7 @@ class DashboardScreen(Container):
     def compose(self) -> ComposeResult:
         # Header
         yield Static(
-            "[bold #06d6a0]⬡ Dashboard[/]  [#576574]System overview & quick actions[/]",
+            "[bold #3b82f6]⬡ Dashboard[/]  [#64748b]System overview & quick actions[/]",
             classes="section-title"
         )
         yield Rule()
@@ -82,7 +82,7 @@ class DashboardScreen(Container):
         yield Static("")  # spacer
 
         # Quick actions
-        yield Static("[bold #06d6a0]⚡ Quick Actions[/]", classes="section-title")
+        yield Static("[bold #3b82f6]⚡ Quick Actions[/]", classes="section-title")
         yield Rule()
 
         with Vertical(id="actions"):
@@ -105,11 +105,11 @@ class DashboardScreen(Container):
         yield Static("")
 
         # Activity log
-        yield Static("[bold #06d6a0]📋 Activity Log[/]", classes="section-title")
+        yield Static("[bold #3b82f6]📋 Activity Log[/]", classes="section-title")
         yield Rule()
         yield Static(
-            "[#576574]System initialized. Ready for tracking.[/]\n"
-            "[#576574]Run diagnostics with [bold]Doctor[/bold] screen.[/]",
+            "[#64748b]System initialized. Ready for tracking.[/]\n"
+            "[#64748b]Run diagnostics with [bold]Doctor[/bold] screen.[/]",
             id="activity-log",
             classes="log-panel"
         )

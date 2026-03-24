@@ -23,8 +23,8 @@ class DoctorScreen(Container):
     }
     #doctor-results {
         height: 1fr;
-        background: #050a12;
-        border: round #0d2137;
+        background: #070a14;
+        border: round #1e3a5f;
         padding: 1 2;
         overflow-y: auto;
     }
@@ -36,7 +36,7 @@ class DoctorScreen(Container):
 
     def compose(self) -> ComposeResult:
         yield Static(
-            "[bold #06d6a0]🩺 Doctor[/]  [#576574]System diagnostics & health check[/]",
+            "[bold #3b82f6]🩺 Doctor[/]  [#64748b]System diagnostics & health check[/]",
             classes="section-title"
         )
         yield Rule()
@@ -73,38 +73,30 @@ class DoctorScreen(Container):
         log_panel.update("")
         status_panel.update("")
         
-        class DoctorState:
-            def __init__(self):
-                self.total: int = 0
-                self.passed: int = 0
-                self.fixes: list[str] = []
-
-        state = DoctorState()
+        state = {"total": 0, "passed": 0, "fixes": []}
 
         def add_log(msg: str, log_type: str = "info"):
-            state.total += 1
+            state["total"] += 1
             icon = "✅" if log_type == "pass" else "❌" if log_type == "fail" else "🔵"
-            color = "#06d6a0" if log_type == "pass" else "#ff4757" if log_type == "fail" else "#00d2d3"
+            color = "#22c55e" if log_type == "pass" else "#ef4444" if log_type == "fail" else "#3b82f6"
             
             if log_type == "pass":
-                state.passed += 1
+                state["passed"] += 1
             
             log_panel.update(str(log_panel.renderable) + f"[{color}]{icon} {msg}[/]\n")
-            
-            # Update status summary
-            status_panel.update(f"Progress: {state.passed}/{state.total} checks passed")
+            status_panel.update(f"Progress: {state['passed']}/{state['total']} checks passed")
 
         async def check(name: str, test_fn, fix_msg: str, step: int):
             try:
                 result = test_fn()
                 if result:
-                    add_log(name, log_type="pass")
+                    add_log(name, type="pass")
                 else:
-                    add_log(name, log_type="fail")
-                    state.fixes.append(fix_msg)
+                    add_log(name, type="fail")
+                    state["fixes"].append(fix_msg)
             except Exception as e:
-                add_log(f"{name} ([#576574]{e}[/])", log_type="fail")
-                state.fixes.append(fix_msg)
+                add_log(f"{name} ([#64748b]{e}[/])", type="fail")
+                state["fixes"].append(fix_msg)
             progress.update(progress=step)
 
         # 1. OS
@@ -180,7 +172,6 @@ class DoctorScreen(Container):
             if not updater.check_git_installed():
                 return False
             if not updater.is_git_repo():
-                # Doctor attempts to fix by auto-converting
                 success, _ = updater.auto_convert_to_git()
                 return success
             return True
@@ -193,16 +184,16 @@ class DoctorScreen(Container):
         )
 
         # Final status
-        if state.passed == state.total:
-            status_panel.update("[bold #06d6a0]PASS: System is healthy![/]")
+        if state["passed"] == state["total"]:
+            status_panel.update("[bold #22c55e]PASS: System is healthy![/]")
             summary_widget.update(
-                f"\n[bold #06d6a0]✓ All {state.total} checks passed.[/]\n"
-                "[#576574]Your system is ready to run KURSORIN.[/]"
+                f"\n[bold #22c55e]✓ All {state['total']} checks passed.[/]\n"
+                "[#64748b]Your system is ready to run KURSORIN.[/]"
             )
         else:
-            status_panel.update(f"[bold #ff4757]FAIL: {state.total - state.passed} issues found[/]")
-            fix_text = "\n".join(f"  • {m}" for m in state.fixes)
+            status_panel.update(f"[bold #ef4444]FAIL: {state['total'] - state['passed']} issues found[/]")
+            fix_text = "\n".join(f"  • {m}" for m in state["fixes"])
             summary_widget.update(
-                f"\n[bold #ee5a6f]⚠ {state.passed}/{state.total} checks passed.[/]\n\n"
+                f"\n[bold #ef4444]⚠ {state['passed']}/{state['total']} checks passed.[/]\n\n"
                 f"[bold]Recommended fixes:[/]\n{fix_text}"
             )

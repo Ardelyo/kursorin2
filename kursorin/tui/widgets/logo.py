@@ -1,7 +1,7 @@
 """
 KURSORIN TUI — Logo Widget
 
-Animated ASCII logo for the sidebar and splash screen.
+Stylized ASCII logo for the command-center home screen.
 """
 
 from textual.widget import Widget
@@ -31,7 +31,7 @@ class LogoWidget(Widget):
     LogoWidget {
         height: auto;
         text-align: center;
-        color: #06d6a0;
+        color: #3b82f6;
         padding: 0 1;
     }
     """

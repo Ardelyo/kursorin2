@@ -1,223 +1,236 @@
 /* ═══════════════════════════════════════════════════════════════════════
-   KURSORIN TUI — Arctic Terminal Theme
-   Deep Navy (#060b14) + Electric Cyan (#06d6a0)
+   KURSORIN TUI — Midnight Blue Command-Center Theme
+   Background: #0a0e1a  |  Accent: #3b82f6  |  Ice: #60a5fa
    ═══════════════════════════════════════════════════════════════════════ */
 
 /* ── Global ────────────────────────────────────────────────────────────── */
 
 Screen {
-    background: #060b14;
-    color: #c8d6e5;
+    background: #0a0e1a;
+    color: #e2e8f0;
 }
 
-Rule {
-    color: #0d2137;
-}
-
-/* ── Header ────────────────────────────────────────────────────────────── */
+/* ── Header Bar ────────────────────────────────────────────────────────── */
 
 #header-bar {
     dock: top;
-    height: 3;
-    background: #0a1628;
-    color: #06d6a0;
-    text-style: bold;
-    content-align: center middle;
-    border-bottom: solid #0d2137;
-}
-
-#header-bar .title {
-    color: #06d6a0;
-    text-style: bold;
-}
-
-#header-bar .version {
-    color: #576574;
-    text-style: italic;
-}
-
-/* ── Sidebar ───────────────────────────────────────────────────────────── */
-
-#sidebar {
-    dock: left;
-    width: 28;
-    background: #0a1628;
-    border-right: solid #0d2137;
-    padding: 1 0;
-}
-
-#sidebar-logo {
-    height: auto;
-    content-align: center middle;
-    text-align: center;
-    color: #06d6a0;
-    padding: 0 1 1 1;
-}
-
-.nav-btn {
-    width: 100%;
-    height: 3;
-    background: transparent;
-    color: #576574;
-    text-style: bold;
-    border: none;
-    margin: 0 1;
+    height: 1;
+    background: #070a14;
+    color: #3b82f6;
     content-align: left middle;
-    padding: 0 2;
+    border-bottom: solid #1e3a5f;
 }
 
-.nav-btn:hover {
-    background: #0d2137;
-    color: #06d6a0;
-}
+/* ── Status Bar (bottom) ──────────────────────────────────────────────── */
 
-.nav-btn:focus {
-    background: #0d2137;
-    color: #06d6a0;
-    text-style: bold;
-}
-
-.nav-btn.-active {
-    background: #06d6a0 15%;
-    color: #06d6a0;
-    border-left: thick #06d6a0;
-}
-
-/* ── Content Area ──────────────────────────────────────────────────────── */
-
-#content-area {
-    background: #060b14;
-    padding: 1 2;
-}
-
-/* ── Footer / Status Bar ──────────────────────────────────────────────── */
-
-#footer-bar {
+#status-bar {
     dock: bottom;
     height: 1;
-    background: #0a1628;
-    color: #576574;
-    content-align: center middle;
-    border-top: solid #0d2137;
+    background: #070a14;
+    color: #64748b;
+    content-align: left middle;
+    border-top: solid #1e3a5f;
 }
 
-.footer-key {
-    color: #06d6a0;
-    text-style: bold;
+/* ── Home Screen ──────────────────────────────────────────────────────── */
+
+#home-screen {
+    width: 100%;
+    height: 1fr;
 }
 
-.footer-desc {
-    color: #576574;
-}
-
-/* ── Dashboard ─────────────────────────────────────────────────────────── */
-
-.dashboard-grid {
-    layout: grid;
-    grid-size: 2;
-    grid-gutter: 1;
+#home-content {
+    width: 80;
     height: auto;
-}
-
-.stat-card {
-    height: 7;
-    background: #0a1628;
-    border: round #0d2137;
-    padding: 1 2;
+    align: center middle;
     content-align: center middle;
 }
 
-.stat-card:hover {
-    border: round #06d6a0 40%;
-}
-
-.stat-value {
-    color: #06d6a0;
-    text-style: bold;
+#logo-art {
     text-align: center;
+    color: #3b82f6;
+    height: auto;
+    width: auto;
+    margin: 0 0 1 0;
 }
 
-.stat-label {
-    color: #576574;
+#logo-subtitle {
     text-align: center;
+    color: #64748b;
+    height: 1;
+    margin: 0 0 2 0;
 }
 
-.action-btn {
+#spacer-1 {
+    height: 1;
+}
+
+#hint-chips {
+    text-align: center;
+    color: #64748b;
+    height: 1;
+    margin: 1 0 0 0;
+}
+
+/* ── Command Input ────────────────────────────────────────────────────── */
+
+CommandInput {
     width: 100%;
     height: 3;
-    margin: 0 0 1 0;
-    background: #0d2137;
-    color: #06d6a0;
-    text-style: bold;
-    border: tall #06d6a0 30%;
+    background: #111827;
+    color: #e2e8f0;
+    border: tall #1e3a5f;
+    padding: 0 1;
+    transition: border 300ms;
 }
 
-.action-btn:hover {
-    background: #06d6a0 20%;
-    border: tall #06d6a0;
+CommandInput:focus {
+    border: tall #3b82f6;
 }
 
-.action-btn.-primary {
-    background: #06d6a0;
-    color: #060b14;
-    border: tall #06d6a0;
+/* ── Screen Panels ────────────────────────────────────────────────────── */
+
+#screen-panels {
+    width: 100%;
+    height: 1fr;
+    display: none;
 }
 
-.action-btn.-primary:hover {
-    background: #06d6a0 80%;
+#back-bar {
+    height: 1;
+    background: #070a14;
+    padding: 0 2;
+    border-bottom: solid #1e3a5f;
 }
 
-.action-btn.-danger {
-    background: #2d1f2f;
-    color: #ee5a6f;
-    border: tall #ee5a6f 30%;
+#content-area {
+    background: #0a0e1a;
+    padding: 1 2;
+    height: 1fr;
 }
 
-.action-btn.-danger:hover {
-    background: #ee5a6f 20%;
-    border: tall #ee5a6f;
-}
-
-/* ── Section headers ───────────────────────────────────────────────────── */
+/* ── Section Styling (shared across screens) ──────────────────────────── */
 
 .section-title {
-    color: #06d6a0;
+    color: #3b82f6;
     text-style: bold;
     padding: 1 0 0 0;
     margin: 0 0 1 0;
 }
 
-.section-divider {
-    height: 1;
-    background: #0d2137;
+Rule {
+    color: #1e3a5f;
+}
+
+/* ── Stat Cards ───────────────────────────────────────────────────────── */
+
+#stats-grid {
+    layout: grid;
+    grid-size: 4;
+    grid-gutter: 1;
+    height: auto;
     margin: 1 0;
 }
 
-/* ── Settings ──────────────────────────────────────────────────────────── */
+StatCard {
+    height: 5;
+    background: #111827;
+    border: round #1e3a5f;
+    padding: 1 2;
+    content-align: center middle;
+    transition: border 200ms;
+}
+
+StatCard:hover {
+    border: round #3b82f6 60%;
+}
+
+/* ── Status Row ───────────────────────────────────────────────────────── */
+
+#status-row {
+    height: 1;
+    margin: 0 0 1 0;
+}
+
+StatusIndicator {
+    height: 1;
+}
+
+/* ── Action Buttons ───────────────────────────────────────────────────── */
+
+.action-btn {
+    width: 100%;
+    height: 3;
+    margin: 0 0 1 0;
+    background: #111827;
+    color: #3b82f6;
+    text-style: bold;
+    border: tall #1e3a5f;
+    transition: background 200ms, border 200ms;
+}
+
+.action-btn:hover {
+    background: #1e3a5f 40%;
+    border: tall #3b82f6;
+}
+
+.action-btn:focus {
+    background: #1e3a5f 40%;
+    border: tall #3b82f6;
+}
+
+.action-btn.-primary {
+    background: #1e3b6e;
+    color: #60a5fa;
+    border: tall #3b82f6;
+}
+
+.action-btn.-primary:hover {
+    background: #3b82f6 30%;
+}
+
+.action-btn.-danger {
+    background: #2d1520;
+    color: #ef4444;
+    border: tall #ef4444 30%;
+}
+
+.action-btn.-danger:hover {
+    background: #ef4444 20%;
+    border: tall #ef4444;
+}
+
+/* ── Settings ─────────────────────────────────────────────────────────── */
 
 .settings-group {
-    background: #0a1628;
-    border: round #0d2137;
+    background: #111827;
+    border: round #1e3a5f;
     padding: 1 2;
     margin: 0 0 1 0;
     height: auto;
 }
 
 .settings-group-title {
-    color: #06d6a0;
+    color: #3b82f6;
     text-style: bold;
     margin: 0 0 1 0;
 }
 
-.setting-row {
+SettingRow {
     height: 3;
-    layout: horizontal;
+    padding: 0 1;
+    background: transparent;
+    transition: background 150ms;
+}
+
+SettingRow:hover {
+    background: #1e3a5f 20%;
 }
 
 .setting-label {
     width: 1fr;
-    color: #c8d6e5;
     content-align: left middle;
+    color: #e2e8f0;
 }
 
 .setting-value {
@@ -226,159 +239,176 @@ Rule {
     content-align: right middle;
 }
 
-/* ── Doctor checks ─────────────────────────────────────────────────────── */
-
-.check-item {
-    height: 1;
-    margin: 0 0 0 0;
+#settings-actions {
+    height: auto;
+    margin: 1 0;
 }
 
-.check-pass {
-    color: #06d6a0;
+/* ── Doctor ────────────────────────────────────────────────────────────── */
+
+#doctor-results {
+    height: 1fr;
+    background: #070a14;
+    border: round #1e3a5f;
+    padding: 1 2;
+    overflow-y: auto;
 }
 
-.check-fail {
-    color: #ee5a6f;
+#doctor-summary {
+    height: auto;
+    padding: 1 0;
 }
 
-.check-pending {
-    color: #576574;
-}
-
-/* ── Log / Output panel ────────────────────────────────────────────────── */
+/* ── Log / Output Panel ───────────────────────────────────────────────── */
 
 .log-panel {
-    background: #050a12;
-    border: round #0d2137;
+    background: #070a14;
+    border: round #1e3a5f;
     padding: 1;
     height: 1fr;
     overflow-y: auto;
 }
 
 .log-line {
-    color: #576574;
+    color: #64748b;
 }
 
 .log-line.-info {
-    color: #c8d6e5;
+    color: #e2e8f0;
 }
 
 .log-line.-success {
-    color: #06d6a0;
+    color: #22c55e;
 }
 
 .log-line.-error {
-    color: #ee5a6f;
+    color: #ef4444;
 }
 
 .log-line.-warning {
-    color: #f0932b;
+    color: #f59e0b;
 }
 
-/* ── Input ─────────────────────────────────────────────────────────────── */
+/* ── Update Log ───────────────────────────────────────────────────────── */
+
+#update-log {
+    height: 1fr;
+    background: #070a14;
+    border: round #1e3a5f;
+    padding: 1 2;
+    overflow-y: auto;
+}
+
+/* ── Input Fields ─────────────────────────────────────────────────────── */
 
 Input {
-    background: #050a12;
-    color: #c8d6e5;
-    border: tall #0d2137;
+    background: #070a14;
+    color: #e2e8f0;
+    border: tall #1e3a5f;
+    transition: border 200ms;
 }
 
 Input:focus {
-    border: tall #06d6a0;
+    border: tall #3b82f6;
 }
 
-/* ── Switches / Toggles ────────────────────────────────────────────────── */
+/* ── Switches ─────────────────────────────────────────────────────────── */
 
 Switch {
-    background: #0d2137;
+    background: #1e3a5f;
 }
 
 Switch.-on {
-    background: #06d6a0;
+    background: #3b82f6;
 }
 
-/* ── ProgressBar ───────────────────────────────────────────────────────── */
+/* ── ProgressBar ──────────────────────────────────────────────────────── */
 
 ProgressBar Bar {
-    color: #06d6a0;
-    background: #0d2137;
+    color: #3b82f6;
+    background: #1e3a5f;
 }
 
 /* ── Tabs ──────────────────────────────────────────────────────────────── */
 
 Tabs {
-    background: #0a1628;
+    background: #111827;
 }
 
 Tab {
-    color: #576574;
-    background: #0a1628;
+    color: #64748b;
+    background: #111827;
+    transition: color 150ms;
 }
 
 Tab:hover {
-    color: #c8d6e5;
+    color: #e2e8f0;
 }
 
 Tab.-active {
-    color: #06d6a0;
+    color: #3b82f6;
     text-style: bold;
 }
 
 /* ── DataTable ─────────────────────────────────────────────────────────── */
 
 DataTable {
-    background: #0a1628;
+    background: #111827;
 }
 
 DataTable > .datatable--header {
-    color: #06d6a0;
+    color: #3b82f6;
     text-style: bold;
-    background: #0d2137;
+    background: #1e3a5f;
 }
 
 DataTable > .datatable--cursor {
-    background: #06d6a0 20%;
-    color: #c8d6e5;
+    background: #3b82f6 20%;
+    color: #e2e8f0;
 }
 
-/* ── Welcome / Splash ──────────────────────────────────────────────────── */
+/* ── Check Items (Doctor) ──────────────────────────────────────────────── */
 
-#welcome-panel {
-    content-align: center middle;
-    height: 100%;
+.check-pass {
+    color: #22c55e;
 }
 
-#welcome-ascii {
-    color: #06d6a0;
+.check-fail {
+    color: #ef4444;
+}
+
+.check-pending {
+    color: #64748b;
+}
+
+/* ── Footer ────────────────────────────────────────────────────────────── */
+
+Footer {
+    background: #070a14;
+    color: #64748b;
+}
+
+Footer > .footer--key {
+    color: #3b82f6;
     text-style: bold;
-    text-align: center;
+    background: #111827;
 }
 
-#welcome-subtitle {
-    color: #576574;
-    text-align: center;
-    margin: 1 0;
+Footer > .footer--description {
+    color: #64748b;
 }
 
-/* ── Status indicator ──────────────────────────────────────────────────── */
+/* ── TabbedContent ─────────────────────────────────────────────────────── */
 
-.status-dot {
-    width: 3;
-    height: 1;
+TabbedContent {
+    height: 1fr;
 }
 
-.status-dot.-online {
-    color: #06d6a0;
+ContentSwitcher {
+    height: 1fr;
 }
 
-.status-dot.-warning {
-    color: #f0932b;
-}
-
-.status-dot.-offline {
-    color: #ee5a6f;
-}
-
-.status-dot.-idle {
-    color: #576574;
+TabPane {
+    height: 1fr;
+    padding: 1 0;
 }

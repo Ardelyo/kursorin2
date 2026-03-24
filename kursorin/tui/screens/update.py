@@ -20,8 +20,8 @@ class UpdateScreen(Container):
     }
     #update-log {
         height: 1fr;
-        background: #050a12;
-        border: round #0d2137;
+        background: #070a14;
+        border: round #1e3a5f;
         padding: 1 2;
         overflow-y: auto;
     }
@@ -29,13 +29,13 @@ class UpdateScreen(Container):
 
     def compose(self) -> ComposeResult:
         yield Static(
-            "[bold #06d6a0]🔄 Updates[/]  [#576574]Keep KURSORIN up to date[/]",
+            "[bold #3b82f6]🔄 Updates[/]  [#64748b]Keep KURSORIN up to date[/]",
             classes="section-title"
         )
         yield Rule()
 
         yield Static(
-            f"[bold #c8d6e5]Current Version:[/] [#06d6a0]v{__version__}[/]",
+            f"[bold #e2e8f0]Current Version:[/] [#3b82f6]v{__version__}[/]",
             id="current-version"
         )
         yield Static("")
@@ -57,44 +57,44 @@ class UpdateScreen(Container):
         )
 
         yield Static("")
-        yield Static("[bold #06d6a0]📋 Update Log[/]", classes="section-title")
+        yield Static("[bold #3b82f6]📋 Update Log[/]", classes="section-title")
         yield Rule()
         yield VerticalScroll(id="update-log")
 
     async def check_updates(self) -> None:
         """Check for available updates."""
         log = self.query_one("#update-log", VerticalScroll)
-        await log.mount(Static("[#576574]Checking for updates...[/]"))
+        await log.mount(Static("[#64748b]Checking for updates...[/]"))
 
         try:
             from kursorin.utils.updater import GitUpdater
             updater = GitUpdater()
 
             if not updater.check_git_installed():
-                await log.mount(Static("[#ee5a6f]✖ Git not found. Please install Git.[/]"))
+                await log.mount(Static("[#ef4444]✖ Git not found. Please install Git.[/]"))
                 return
 
             if not updater.is_git_repo():
-                await log.mount(Static("[#e1b12c]⚠ Not a Git repository. Attempting auto-conversion to Git...[/]"))
+                await log.mount(Static("[#f59e0b]⚠ Not a Git repository. Attempting auto-conversion...[/]"))
                 success, git_msg = updater.auto_convert_to_git()
                 if not success:
-                    await log.mount(Static(f"[#ee5a6f]✖ Auto-conversion failed: {git_msg}[/]"))
+                    await log.mount(Static(f"[#ef4444]✖ Auto-conversion failed: {git_msg}[/]"))
                     return
-                await log.mount(Static("[#06d6a0]✓ Successfully tracked Git repository![/]"))
+                await log.mount(Static("[#22c55e]✓ Successfully tracked Git repository![/]"))
 
             available, msg = updater.check_for_updates()
             if available:
-                await log.mount(Static("[#06d6a0]✓ Update available![/]"))
+                await log.mount(Static("[#22c55e]✓ Update available![/]"))
             else:
-                await log.mount(Static(f"[#06d6a0]✓ {msg}[/]"))
+                await log.mount(Static(f"[#22c55e]✓ {msg}[/]"))
         except Exception as e:
-            await log.mount(Static(f"[#ee5a6f]✖ Error: {e}[/]"))
+            await log.mount(Static(f"[#ef4444]✖ Error: {e}[/]"))
 
     async def pull_update(self, force: bool = False) -> None:
         """Pull the latest update."""
         log = self.query_one("#update-log", VerticalScroll)
         mode = "force" if force else "normal"
-        await log.mount(Static(f"[#576574]Pulling update ({mode})...[/]"))
+        await log.mount(Static(f"[#64748b]Pulling update ({mode})...[/]"))
 
         try:
             from kursorin.utils.updater import GitUpdater
@@ -103,10 +103,10 @@ class UpdateScreen(Container):
 
             if success:
                 await log.mount(
-                    Static(f"[#06d6a0]✓ {msg}[/]\n"
-                           "[bold #06d6a0]Please restart KURSORIN to apply changes.[/]")
+                    Static(f"[#22c55e]✓ {msg}[/]\n"
+                           "[bold #22c55e]Please restart KURSORIN to apply changes.[/]")
                 )
             else:
-                await log.mount(Static(f"[#ee5a6f]✖ {msg}[/]"))
+                await log.mount(Static(f"[#ef4444]✖ {msg}[/]"))
         except Exception as e:
-            await log.mount(Static(f"[#ee5a6f]✖ Error: {e}[/]"))
+            await log.mount(Static(f"[#ef4444]✖ Error: {e}[/]"))

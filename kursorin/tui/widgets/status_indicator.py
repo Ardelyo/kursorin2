@@ -22,10 +22,10 @@ class StatusIndicator(Widget):
     label = reactive("System")
 
     INDICATORS = {
-        "online": ("●", "#06d6a0"),
-        "warning": ("●", "#f0932b"),
-        "offline": ("●", "#ee5a6f"),
-        "idle": ("○", "#576574"),
+        "online": ("●", "#22c55e"),
+        "warning": ("●", "#f59e0b"),
+        "offline": ("●", "#ef4444"),
+        "idle": ("○", "#64748b"),
     }
 
     def __init__(self, label: str = "System", status: str = "idle", **kwargs):
@@ -34,5 +34,5 @@ class StatusIndicator(Widget):
         self.status = status
 
     def render(self) -> str:
-        symbol, color = self.INDICATORS.get(self.status, ("○", "#576574"))
+        symbol, color = self.INDICATORS.get(self.status, ("○", "#64748b"))
         return f"[{color}]{symbol}[/] {self.label}"

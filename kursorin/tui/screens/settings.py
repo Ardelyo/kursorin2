@@ -25,12 +25,12 @@ class SettingRow(Horizontal):
         background: transparent;
     }
     SettingRow:hover {
-        background: #0d2137 30%;
+        background: #1e3a5f 20%;
     }
     .setting-label {
         width: 1fr;
         content-align: left middle;
-        color: #c8d6e5;
+        color: #e2e8f0;
     }
     """
 
@@ -79,7 +79,7 @@ class SettingsScreen(Container):
 
     def compose(self) -> ComposeResult:
         yield Static(
-            "[bold #06d6a0]⚙  Settings[/]  [#576574]Configure KURSORIN[/]",
+            "[bold #3b82f6]⚙  Settings[/]  [#64748b]Configure KURSORIN[/]",
             classes="section-title"
         )
         yield Rule()
@@ -90,21 +90,21 @@ class SettingsScreen(Container):
             # ── Tracking Tab ──
             with TabPane("Tracking", id="tab-tracking"):
                 with VerticalScroll():
-                    yield Static("[bold #06d6a0]Head Tracking[/]", classes="settings-group-title")
-                    yield ToggleRow("Enable Head Tracking", cfg.tracking.head_enabled, "head-enabled")
-                    yield InputRow("Sensitivity X", str(cfg.tracking.head_sensitivity_x), "head-sens-x")
-                    yield InputRow("Sensitivity Y", str(cfg.tracking.head_sensitivity_y), "head-sens-y")
-                    yield InputRow("Smoothing", str(cfg.tracking.head_smoothing), "head-smooth")
-                    yield ToggleRow("Invert X", cfg.tracking.invert_x, "invert-x")
-                    yield ToggleRow("Invert Y", cfg.tracking.invert_y, "invert-y")
+                    yield Static("[bold #3b82f6]Head Tracking[/]", classes="settings-group-title")
+                    yield ToggleRow("Enable Head Tracking", cfg.tracking.head_enabled, "head_enabled")
+                    yield InputRow("Sensitivity X", str(cfg.tracking.head_sensitivity_x), "head_sens_x")
+                    yield InputRow("Sensitivity Y", str(cfg.tracking.head_sensitivity_y), "head_sens_y")
+                    yield InputRow("Smoothing", str(cfg.tracking.head_smoothing), "head_smooth")
+                    yield ToggleRow("Invert X", cfg.tracking.invert_x, "invert_x")
+                    yield ToggleRow("Invert Y", cfg.tracking.invert_y, "invert_y")
 
                     yield Rule()
-                    yield Static("[bold #06d6a0]Eye Tracking[/]", classes="settings-group-title")
+                    yield Static("[bold #3b82f6]Eye Tracking[/]", classes="settings-group-title")
                     yield ToggleRow("Enable Eye Tracking", cfg.tracking.eye_enabled, "eye_enabled")
                     yield InputRow("Blink Threshold", str(cfg.tracking.eye_blink_threshold), "blink_thresh")
 
                     yield Rule()
-                    yield Static("[bold #06d6a0]Hand Tracking[/]", classes="settings-group-title")
+                    yield Static("[bold #3b82f6]Hand Tracking[/]", classes="settings-group-title")
                     yield ToggleRow("Enable Hand Tracking", cfg.tracking.hand_enabled, "hand_enabled")
                     yield InputRow("Pinch Threshold", str(cfg.tracking.pinch_threshold), "pinch_thresh")
 
@@ -132,11 +132,11 @@ class SettingsScreen(Container):
             # ── Performance Tab ──
             with TabPane("Performance", id="tab-perf"):
                 with VerticalScroll():
-                    yield InputRow("Max FPS", str(cfg.performance.max_fps), "max-fps")
+                    yield InputRow("Max FPS", str(cfg.performance.max_fps), "max_fps")
                     yield ToggleRow("Multi-Threading", cfg.performance.use_threading, "threading")
-                    yield InputRow("Thread Count", str(cfg.performance.thread_count), "thread-count")
+                    yield InputRow("Thread Count", str(cfg.performance.thread_count), "thread_count")
                     yield ToggleRow("GPU Acceleration", cfg.performance.use_gpu, "gpu")
-                    yield ToggleRow("Power Save Mode", cfg.performance.power_save_mode, "power-save")
+                    yield ToggleRow("Power Save Mode", cfg.performance.power_save_mode, "power_save")
 
             # ── Appearance Tab ──
             with TabPane("Appearance", id="tab-appearance"):
