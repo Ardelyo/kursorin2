@@ -95,6 +95,17 @@ def start(scenario):
     config = load_config()
     setup_logging(config)
 
+    # Optional update check
+    try:
+        from kursorin.utils.updater import GitUpdater
+        updater = GitUpdater()
+        if updater.check_git_installed() and updater.is_git_repo():
+            available, _ = updater.check_for_updates()
+            if available:
+                console.print(f"\n[bold yellow]! {t('update.available')}[/]\n")
+    except Exception:
+        pass
+
     # Apply scenario
     if scenario == 'hands-free':
         config.tracking.hand_enabled = False
@@ -504,6 +515,49 @@ def info():
     table.add_row(t('module.performance'), "Configured", f"Threads:{cfg.performance.use_threading} GPU:{cfg.performance.use_gpu}")
     
     console.print(table)
+
+
+# ─── UPDATE ───────────────────────────────────────────────────────────────────
+
+@cli.command()
+@click.option('--force', is_flag=True, help='Force update and overwrite local changes.')
+def update(force):
+    """Check and pull updates via git."""
+    init_lang()
+    from kursorin.utils.updater import GitUpdater
+    updater = GitUpdater()
+
+    console.print(BANNER)
+    
+    with console.status(f"[{COLORS['accent']}]{t('update.checking')}[/]", spinner="dots"):
+        if not updater.check_git_installed():
+            console.print(f"[{COLORS['error']}]✖ {t('update.error_git')}[/]")
+            return
+        
+        if not updater.is_git_repo():
+            console.print(f"[{COLORS['error']}]✖ {t('update.error_repo')}[/]")
+            return
+
+        available, msg = updater.check_for_updates()
+        
+    if not available:
+        if "Up to date" in msg:
+            console.print(f"[{COLORS['success']}]✓ {t('update.up_to_date')}[/]")
+        else:
+            console.print(f"[{COLORS['warning']}]! {msg}[/]")
+        return
+
+    # If update available, pull it
+    with console.status(f"[{COLORS['accent']}]{t('update.pulling')}[/]", spinner="dots"):
+        success, pull_msg = updater.pull_update(force=force)
+
+    if success:
+        console.print(f"[{COLORS['success']}]✓ {t('update.success')}[/]")
+    else:
+        if "Local changes detected" in pull_msg:
+            console.print(f"[{COLORS['error']}]✖ {t('update.error_local')}[/]")
+        else:
+            console.print(f"[{COLORS['error']}]✖ {pull_msg}[/]")
 
 
 def main():

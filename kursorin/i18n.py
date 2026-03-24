@@ -61,6 +61,10 @@ _STRINGS: Dict[str, Dict[str, str]] = {
         "en": "Show detailed system info",
         "id": "Tampilkan info sistem lengkap",
     },
+    "cli.cmd.update": {
+        "en": "Check and pull updates via git",
+        "id": "Cek dan unduh pembaruan melalui git",
+    },
     "cli.quick_ref": {
         "en": "Quick Reference",
         "id": "Panduan Cepat",
@@ -634,6 +638,40 @@ _STRINGS: Dict[str, Dict[str, str]] = {
     "module.threading_gpu": {
         "en": "Threading / GPU",
         "id": "Threading / GPU",
+    },
+
+    # ── Updates ───────────────────────────────────────────────────────────
+    "update.checking": {
+        "en": "Checking for updates...",
+        "id": "Memeriksa pembaruan...",
+    },
+    "update.available": {
+        "en": "Update available! Run [bold]kursorin update[/bold] to apply.",
+        "id": "Pembaruan tersedia! Jalankan [bold]kursorin update[/bold] untuk memasang.",
+    },
+    "update.up_to_date": {
+        "en": "System is up to date.",
+        "id": "Sistem sudah versi terbaru.",
+    },
+    "update.success": {
+        "en": "Update successful! Please restart KURSORIN.",
+        "id": "Pembaruan berhasil! Silakan mulai ulang KURSORIN.",
+    },
+    "update.pulling": {
+        "en": "Pulling latest changes...",
+        "id": "Mengunduh perubahan terbaru...",
+    },
+    "update.error_git": {
+        "en": "Git not found. Please install Git to use automatic updates.",
+        "id": "Git tidak ditemukan. Silakan pasang Git untuk pembaruan otomatis.",
+    },
+    "update.error_repo": {
+        "en": "Not a Git repository. Updates disabled.",
+        "id": "Bukan repositori Git. Pembaruan dinonaktifkan.",
+    },
+    "update.error_local": {
+        "en": "Local changes detected. Use [bold]--force[/bold] to overwrite.",
+        "id": "Terdeteksi perubahan lokal. Gunakan [bold]--force[/bold] untuk menimpa.",
     },
 }
 
