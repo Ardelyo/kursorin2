@@ -1,12 +1,5 @@
-"""
-Head Tracker
-
-Implements head pose estimation using MediaPipe Face Mesh.
-"""
-
-import cv2
-import mediapipe as mp
 import numpy as np
+import time
 
 from kursorin.config import KursorinConfig
 from kursorin.constants import (
@@ -27,9 +20,8 @@ class HeadTracker(BaseTracker):
     def __init__(self, config: KursorinConfig):
         super().__init__(config)
         
-        # Initialize MediaPipe Face Mesh
-        self.mp_face_mesh = mp.solutions.face_mesh
-        self.face_mesh = self.mp_face_mesh.FaceMesh(
+        import mediapipe as mp
+        self.face_mesh = mp.solutions.face_mesh.FaceMesh(
             max_num_faces=1,
             refine_landmarks=True,
             min_detection_confidence=0.5,
@@ -50,7 +42,7 @@ class HeadTracker(BaseTracker):
         self.camera_matrix = None
         self.dist_coeffs = np.zeros((4, 1))
     
-    def process(self, frame: np.ndarray) -> TrackerResult:
+    def process(self, frame: np.ndarray, **kwargs) -> TrackerResult:
         """
         Process frame to estimate head pose.
         
@@ -69,9 +61,14 @@ class HeadTracker(BaseTracker):
                  [0, 0, 1]], dtype=np.float64
             )
         
-        # Convert to RGB for MediaPipe
-        rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        results = self.face_mesh.process(rgb_frame)
+        # Check if results are provided by a shared FaceMesh provider
+        face_mesh_results = kwargs.get("face_mesh_results")
+        if face_mesh_results is not None:
+            results = face_mesh_results
+        else:
+            # Convert to RGB for independent MediaPipe
+            rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            results = self.face_mesh.process(rgb_frame)
         
         if not results.multi_face_landmarks:
             return TrackerResult(valid=False)
@@ -142,6 +139,7 @@ class HeadTracker(BaseTracker):
             position=np.array([norm_x, norm_y]),
             confidence=1.0,  # MediaPipe is generally confident if it detects a face
             landmarks=landmarks,
+            timestamp=time.time(),
             metadata={
                 "pitch": pitch,
                 "yaw": yaw,

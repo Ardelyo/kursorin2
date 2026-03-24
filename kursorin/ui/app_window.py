@@ -11,6 +11,7 @@ import cv2
 import threading
 import time
 
+from loguru import logger
 from kursorin.config import KursorinConfig
 from kursorin.core.kursorin_engine import KursorinEngine, FrameResult
 from kursorin.ui.overlay import Overlay
@@ -154,20 +155,14 @@ class AppWindow:
             # Draw overlay
             vis_frame = self.overlay.draw(result.frame, result)
             
-            # Convert to Tkinter image
-            rgb_frame = cv2.cvtColor(vis_frame, cv2.COLOR_BGR2RGB)
-            img = Image.fromarray(rgb_frame)
-            
-            # Resize if needed to fit label
-            # For now, just display
-            imgtk = ImageTk.PhotoImage(image=img)
-            
-            # Update label (must be thread safe, use after)
-            self.root.after(0, self._update_video_label, imgtk)
-            
-    def _update_video_label(self, imgtk):
+            # Store image in instance and request update on main thread
+            self.root.after(0, self._update_video_label_from_pil, img)
+    
+    def _update_video_label_from_pil(self, img: Image.Image):
+        """Update label with PIL image. Must be called on main thread."""
+        imgtk = ImageTk.PhotoImage(image=img)
         self.video_label.configure(image=imgtk)
-        self.video_label.image = imgtk # Keep reference
+        self.video_label.image = imgtk  # Keep reference
         
     def _on_close(self):
         if self.engine.is_running:

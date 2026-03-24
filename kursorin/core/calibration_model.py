@@ -68,3 +68,26 @@ class CalibrationModel:
         self.screen_points = []
         self.matrix = None
         self.is_calibrated = False
+
+    def to_dict(self) -> dict:
+        """Serialize calibration data to dictionary."""
+        matrix = self.matrix
+        return {
+            "raw_points": self.raw_points,
+            "screen_points": self.screen_points,
+            "matrix": matrix.tolist() if matrix is not None else None,
+            "is_calibrated": self.is_calibrated
+        }
+        
+    def from_dict(self, data: dict):
+        """Deserialize calibration data from dictionary."""
+        self.raw_points = data.get("raw_points", [])
+        self.screen_points = data.get("screen_points", [])
+        
+        matrix_data = data.get("matrix")
+        if matrix_data is not None:
+            self.matrix = np.array(matrix_data, dtype=np.float32)
+        else:
+            self.matrix = None
+            
+        self.is_calibrated = data.get("is_calibrated", False)

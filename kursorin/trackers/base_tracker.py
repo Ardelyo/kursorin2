@@ -31,7 +31,7 @@ class BaseTracker(ABC):
         self.config = config
     
     @abstractmethod
-    def process(self, frame: np.ndarray) -> TrackerResult:
+    def process(self, frame: np.ndarray, **kwargs) -> TrackerResult:
         """
         Process a single video frame.
         

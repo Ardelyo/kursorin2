@@ -366,7 +366,10 @@ class KursorinConfig(BaseModel):
         path = Path(path)
         path.parent.mkdir(parents=True, exist_ok=True)
         
-        data = self.dict()
+        try:
+            data = self.model_dump()
+        except AttributeError:
+            data = self.dict()
         
         with open(path, "w") as f:
             if path.suffix in (".yaml", ".yml"):
@@ -378,7 +381,10 @@ class KursorinConfig(BaseModel):
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert configuration to dictionary."""
-        return self.dict()
+        try:
+            return self.model_dump()
+        except AttributeError:
+            return self.dict()
     
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "KursorinConfig":
@@ -387,8 +393,12 @@ class KursorinConfig(BaseModel):
     
     def merge_with(self, other: "KursorinConfig") -> "KursorinConfig":
         """Merge this configuration with another, other takes precedence."""
-        self_dict = self.dict()
-        other_dict = other.dict()
+        try:
+            self_dict = self.model_dump()
+            other_dict = other.model_dump()
+        except AttributeError:
+            self_dict = self.dict()
+            other_dict = other.dict()
         
         def deep_merge(base: dict, override: dict) -> dict:
             result = base.copy()
@@ -402,10 +412,10 @@ class KursorinConfig(BaseModel):
         merged = deep_merge(self_dict, other_dict)
         return KursorinConfig(**merged)
     
-    class Config:
-        """Pydantic configuration."""
-        validate_assignment = True
-        extra = "forbid"
+    model_config = {
+        "validate_assignment": True,
+        "extra": "forbid"
+    }
 
 
 # Default configuration instance

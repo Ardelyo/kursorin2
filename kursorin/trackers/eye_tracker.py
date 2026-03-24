@@ -1,12 +1,5 @@
-"""
-Eye Tracker
-
-Implements eye gaze tracking using MediaPipe Face Mesh iris landmarks.
-"""
-
-import cv2
-import mediapipe as mp
 import numpy as np
+import time
 
 from kursorin.config import KursorinConfig
 from kursorin.constants import (
@@ -35,8 +28,8 @@ class EyeTracker(BaseTracker):
         # or we could modify the architecture to pass landmarks.
         # Let's assume independent for now, but note the performance cost.
         
-        self.mp_face_mesh = mp.solutions.face_mesh
-        self.face_mesh = self.mp_face_mesh.FaceMesh(
+        import mediapipe as mp
+        self.face_mesh = mp.solutions.face_mesh.FaceMesh(
             max_num_faces=1,
             refine_landmarks=True,
             min_detection_confidence=0.5,
@@ -46,14 +39,17 @@ class EyeTracker(BaseTracker):
         # Calibration data (placeholder)
         self.calibration_matrix = None
 
-    def process(self, frame: np.ndarray) -> TrackerResult:
+    def process(self, frame: np.ndarray, **kwargs) -> TrackerResult:
         """
         Process frame to estimate gaze.
         """
-        # Note: In an optimized system, we would receive landmarks from a shared source.
-        # Here we re-process.
-        rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        results = self.face_mesh.process(rgb_frame)
+        # Get shared results if provided, otherwise run independently
+        face_mesh_results = kwargs.get("face_mesh_results")
+        if face_mesh_results is not None:
+            results = face_mesh_results
+        else:
+            rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            results = self.face_mesh.process(rgb_frame)
         
         if not results.multi_face_landmarks:
             return TrackerResult(valid=False)
@@ -97,6 +93,7 @@ class EyeTracker(BaseTracker):
             position=np.array([norm_x, norm_y]),
             confidence=1.0,
             landmarks=landmarks,
+            timestamp=time.time(),
             metadata={
                 "ear": avg_ear,
                 "left_ear": left_ear,

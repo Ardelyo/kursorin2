@@ -6,7 +6,7 @@ Draws tracking visualization on the video frame.
 
 import cv2
 import numpy as np
-from typing import Optional
+from typing import Optional, Tuple
 
 from kursorin.config import KursorinConfig
 from kursorin.core.kursorin_engine import FrameResult
@@ -20,6 +20,8 @@ class Overlay:
     
     def __init__(self, config: KursorinConfig):
         self.config = config
+        self.click_animation_frames = 0
+        self.click_position: Tuple[int, int] = (0, 0)
         
     def draw(self, frame: np.ndarray, result: FrameResult) -> np.ndarray:
         """
@@ -84,5 +86,22 @@ class Overlay:
                 epx, epy = int(ex * w), int(ey * h)
                 cv2.line(vis_frame, (epx, epy), (px, py), Color.EYE_COLOR, 1)
                 cv2.circle(vis_frame, (epx, epy), 5, Color.EYE_COLOR, -1)
+                
+        # Draw Click Visual Feedback
+        from kursorin.constants import ClickType
+        if result.click_event and result.click_event != ClickType.NONE:
+            self.click_animation_frames = 15
+            if result.cursor_position:
+                self.click_position = (int(result.cursor_position[0] * w), int(result.cursor_position[1] * h))
+                
+        if self.click_animation_frames > 0:
+            radius = 10 + (15 - self.click_animation_frames) * 3
+            thickness = max(1, self.click_animation_frames // 3)
+            
+            cv2.circle(vis_frame, self.click_position, radius, Color.SUCCESS, thickness)
+            cv2.putText(vis_frame, "CLICK!", (self.click_position[0] + 15, self.click_position[1] - 15), 
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, Color.SUCCESS, 2)
+            
+            self.click_animation_frames -= 1
             
         return vis_frame

@@ -61,3 +61,21 @@ class CursorController:
         elif click_type == ClickType.DOUBLE_CLICK:
             pyautogui.doubleClick()
         # Add other click types as needed
+        
+    def mouse_down(self):
+        """
+        Press and hold the left mouse button for dragging.
+        """
+        pyautogui.mouseDown()
+        
+    def mouse_up(self):
+        """
+        Release the left mouse button.
+        """
+        pyautogui.mouseUp()
+        
+    def scroll(self, amount: int):
+        """
+        Scroll vertically by given amount (positive=up, negative=down).
+        """
+        pyautogui.scroll(amount)

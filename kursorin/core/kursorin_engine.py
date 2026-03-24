@@ -14,6 +14,9 @@ from typing import Callable, Dict, List, Optional, Tuple
 
 import cv2
 import numpy as np
+import mediapipe as mp
+import os
+import json
 from loguru import logger
 
 from kursorin.config import KursorinConfig
@@ -97,9 +100,11 @@ class KursorinEngine:
         self._smoother: Optional[CursorSmoother] = None
         self._cursor_controller: Optional[CursorController] = None
         self._click_detector: Optional[ClickDetector] = None
-        self._click_detector: Optional[ClickDetector] = None
         self._performance_monitor: Optional[PerformanceMonitor] = None
         self._calibration_model: Optional[CalibrationModel] = None
+        
+        # Shared FaceMesh for performance
+        self.shared_face_mesh = None
         
         # Cache for calibration
         self._latest_eye_result: Optional[TrackerResult] = None
@@ -150,15 +155,17 @@ class KursorinEngine:
     @property
     def fps(self) -> float:
         """Get current frames per second."""
-        if self._performance_monitor:
-            return self._performance_monitor.fps
+        pm = self._performance_monitor
+        if pm is not None:
+            return pm.fps
         return 0.0
     
     @property
     def latency_ms(self) -> float:
         """Get current processing latency in milliseconds."""
-        if self._performance_monitor:
-            return self._performance_monitor.avg_latency_ms
+        pm = self._performance_monitor
+        if pm is not None:
+            return pm.avg_latency_ms
         return 0.0
     
     def initialize(self) -> None:
@@ -174,14 +181,24 @@ class KursorinEngine:
         with self._lock:
             try:
                 # Initialize camera
-                self._camera = CameraManager(
+                camera = CameraManager(
                     camera_index=self.config.camera.camera_index,
                     width=self.config.camera.camera_width,
                     height=self.config.camera.camera_height,
                     fps=self.config.camera.target_fps,
                 )
-                self._camera.open()
-                logger.info(f"Camera initialized: {self._camera.width}x{self._camera.height} @ {self._camera.fps}fps")
+                self._camera = camera
+                camera.open()
+                logger.info(f"Camera initialized: {camera.width}x{camera.height} @ {camera.fps}fps")
+                
+                # Initialize shared FaceMesh
+                self.shared_face_mesh = mp.solutions.face_mesh.FaceMesh(
+                    max_num_faces=1,
+                    refine_landmarks=True,
+                    min_detection_confidence=0.5,
+                    min_tracking_confidence=0.5,
+                )
+                logger.info("Shared FaceMesh initialized")
                 
                 # Initialize trackers
                 if self.config.tracking.head_enabled:
@@ -218,6 +235,7 @@ class KursorinEngine:
                 
                 # Initialize calibration model
                 self._calibration_model = CalibrationModel()
+                self.load_calibration()
                 logger.info("Calibration model initialized")
                 
                 self.state = TrackingState.IDLE
@@ -253,12 +271,13 @@ class KursorinEngine:
         self._start_time = time.time()
         
         # Start processing thread
-        self._processing_thread = threading.Thread(
+        thread = threading.Thread(
             target=self._processing_loop,
             name="KursorinProcessing",
             daemon=True,
         )
-        self._processing_thread.start()
+        self._processing_thread = thread
+        thread.start()
         
         self.state = TrackingState.TRACKING
         logger.info("KURSORIN engine started")
@@ -274,8 +293,9 @@ class KursorinEngine:
         self._stop_event.set()
         
         # Wait for processing thread to finish
-        if self._processing_thread and self._processing_thread.is_alive():
-            self._processing_thread.join(timeout=2.0)
+        thread = self._processing_thread
+        if thread is not None and thread.is_alive():
+            thread.join(timeout=2.0)
         
         # Release resources
         self._cleanup()
@@ -343,12 +363,19 @@ class KursorinEngine:
         """Main processing loop running in separate thread."""
         logger.debug("Processing loop started")
         
+        camera = self._camera
+        if camera is None:
+            return
+            
         # Camera warmup
         warmup_frames = self.config.camera.warmup_frames
         for _ in range(warmup_frames):
             if self._stop_event.is_set():
                 break
-            self._camera.read()
+            camera.read()
+        
+        cc = self._cursor_controller
+        pm = self._performance_monitor
         
         while not self._stop_event.is_set():
             try:
@@ -357,23 +384,35 @@ class KursorinEngine:
                 
                 if result and result.valid:
                     # Update cursor position
-                    if not self._is_paused:
-                        self._cursor_controller.move_to(result.cursor_position)
+                    if not self._is_paused and cc is not None:
+                        cc.move_to(result.cursor_position)
                     
                     # Handle click events
                     if result.click_event and result.click_event != ClickType.NONE:
-                        if not self._is_paused:
-                            self._cursor_controller.click(result.click_event)
+                        if not self._is_paused and cc is not None:
+                            evt = result.click_event
+                            if evt == ClickType.DRAG_START:
+                                cc.mouse_down()
+                            elif evt == ClickType.DRAG_END:
+                                cc.mouse_up()
+                            elif evt == ClickType.SCROLL_UP:
+                                cc.scroll(100)  # Scroll up amount
+                            elif evt == ClickType.SCROLL_DOWN:
+                                cc.scroll(-100) # Scroll down amount
+                            else:
+                                cc.click(evt)
                 
                 # Notify callbacks
-                for callback in self._frame_callbacks:
-                    try:
-                        callback(result)
-                    except Exception as e:
-                        logger.error(f"Error in frame callback: {e}")
+                if result is not None:
+                    for callback in self._frame_callbacks:
+                        try:
+                            callback(result)
+                        except Exception as e:
+                            logger.error(f"Error in frame callback: {e}")
                 
                 # Frame rate limiting
-                self._performance_monitor.frame_complete()
+                if pm is not None:
+                    pm.frame_complete()
                 
             except Exception as e:
                 logger.exception("Error in processing loop")
@@ -385,8 +424,12 @@ class KursorinEngine:
         """Process a single frame and return result."""
         start_time = time.time()
         
+        camera = self._camera
+        if camera is None:
+            return None
+        
         # Read frame from camera
-        frame = self._camera.read()
+        frame = camera.read()
         if frame is None:
             return None
         
@@ -397,33 +440,53 @@ class KursorinEngine:
         self._frame_count += 1
         timestamp = time.time()
         
+        # Process shared FaceMesh
+        face_mesh_results = None
+        face_mesh = self.shared_face_mesh
+        if (self._head_tracker or self._eye_tracker) and not self._is_paused and face_mesh is not None:
+            rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            face_mesh_results = face_mesh.process(rgb_frame)
+        
         # Process with each tracker
         head_result = None
         eye_result = None
         hand_result = None
         
-        if self._head_tracker and not self._is_paused:
-            head_result = self._head_tracker.process(frame)
+        head_tracker = self._head_tracker
+        if head_tracker is not None and not self._is_paused:
+            head_result = head_tracker.process(frame, face_mesh_results=face_mesh_results)
         
-        if self._eye_tracker and not self._is_paused:
-            eye_result = self._eye_tracker.process(frame)
+        eye_tracker = self._eye_tracker
+        calib = self._calibration_model
+        if eye_tracker is not None and not self._is_paused:
+            eye_result = eye_tracker.process(frame, face_mesh_results=face_mesh_results)
+            self._latest_eye_result = eye_result
+            
+            # Map eye coordinates using calibration if available
+            if eye_result and eye_result.valid and calib is not None and calib.is_calibrated:
+                px, py = eye_result.position
+                mapped_pos = calib.map((px, py))
+                eye_result.position = np.array([mapped_pos[0], mapped_pos[1]])
         
-        if self._hand_tracker and not self._is_paused:
-            hand_result = self._hand_tracker.process(frame)
+        hand_tracker = self._hand_tracker
+        if hand_tracker is not None and not self._is_paused:
+            hand_result = hand_tracker.process(frame)
         
         # Fuse results
         cursor_position = None
-        if not self._is_paused:
+        fusion = self._fusion
+        if fusion is not None and not self._is_paused:
             try:
-                cursor_position = self._fusion.fuse(
+                cursor_position = fusion.fuse(
                     head_result,
                     eye_result,
                     hand_result,
                 )
                 
+                smoother = self._smoother
                 # Apply smoothing
-                if cursor_position is not None:
-                    cursor_position = self._smoother.smooth(cursor_position)
+                if cursor_position is not None and smoother is not None:
+                    cursor_position = smoother.smooth(cursor_position)
                     
             except NoValidModalityError:
                 # No valid tracking data, keep cursor stationary
@@ -431,15 +494,18 @@ class KursorinEngine:
         
         # Detect clicks
         click_event = None
-        if not self._is_paused:
-            click_event = self._click_detector.detect(
+        cd = self._click_detector
+        if cd is not None and not self._is_paused:
+            click_event = cd.detect(
                 eye_result,
                 hand_result,
                 cursor_position,
             )
         
         processing_time_ms = (time.time() - start_time) * 1000
-        self._performance_monitor.record_latency(processing_time_ms)
+        pm = self._performance_monitor
+        if pm is not None:
+            pm.record_latency(processing_time_ms)
         
         return FrameResult(
             timestamp=timestamp,
@@ -465,32 +531,43 @@ class KursorinEngine:
         # Attempt recovery for certain errors
         if isinstance(error, CameraError):
             logger.warning("Attempting camera recovery...")
-            try:
-                self._camera.close()
-                time.sleep(0.5)
-                self._camera.open()
-                self.state = TrackingState.TRACKING
-                logger.info("Camera recovered")
-            except Exception:
-                logger.error("Camera recovery failed")
+            camera = self._camera
+            if camera is not None:
+                try:
+                    camera.close()
+                    time.sleep(0.5)
+                    camera.open()
+                    self.state = TrackingState.TRACKING
+                    logger.info("Camera recovered")
+                except Exception:
+                    logger.error("Camera recovery failed")
     
     def _cleanup(self) -> None:
         """Clean up resources."""
         with self._lock:
-            if self._camera:
-                self._camera.close()
+            face_mesh = self.shared_face_mesh
+            if face_mesh is not None:
+                face_mesh.close()
+                self.shared_face_mesh = None
+                
+            camera = self._camera
+            if camera is not None:
+                camera.close()
                 self._camera = None
             
-            if self._head_tracker:
-                self._head_tracker.close()
+            head_tracker = self._head_tracker
+            if head_tracker is not None:
+                head_tracker.close()
                 self._head_tracker = None
             
-            if self._eye_tracker:
-                self._eye_tracker.close()
+            eye_tracker = self._eye_tracker
+            if eye_tracker is not None:
+                eye_tracker.close()
                 self._eye_tracker = None
             
-            if self._hand_tracker:
-                self._hand_tracker.close()
+            hand_tracker = self._hand_tracker
+            if hand_tracker is not None:
+                hand_tracker.close()
                 self._hand_tracker = None
     
     # =========================================================================
@@ -520,3 +597,42 @@ class KursorinEngine:
                 callback_list.remove(callback)
                 return True
         return False
+        
+    def save_calibration(self, filename: str = "calibration.json") -> bool:
+        """Save calibration data to disk."""
+        calib = self._calibration_model
+        if calib is None:
+            return False
+        try:
+            config_dir = os.path.expanduser("~/.kursorin")
+            os.makedirs(config_dir, exist_ok=True)
+            filepath = os.path.join(config_dir, filename)
+            
+            data = calib.to_dict()
+            with open(filepath, "w") as f:
+                json.dump(data, f)
+            logger.info("Calibration saved to disk")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to save calibration: {e}")
+            return False
+            
+    def load_calibration(self, filename: str = "calibration.json") -> bool:
+        """Load calibration data from disk."""
+        calib = self._calibration_model
+        if calib is None:
+            return False
+        try:
+            filepath = os.path.join(os.path.expanduser("~/.kursorin"), filename)
+            if not os.path.exists(filepath):
+                return False
+                
+            with open(filepath, "r") as f:
+                data = json.load(f)
+            
+            calib.from_dict(data)
+            logger.info("Calibration loaded from disk")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to load calibration: {e}")
+            return False
