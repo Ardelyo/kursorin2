@@ -52,6 +52,14 @@ app = Kursorin()
 app.start()
 ```
 
+## 📁 Struktur Repositori
+
+- `kursorin/`: Kode sumber utama mesin dan TUI Kursorin.
+  - `assets/models/`: Lokasi model pra-terlatih `.task` (Face dan Hand Landmarker).
+- `benchmarks/`: Skrip dan hasil pengujian performa (`benchmark.py`).
+- `docs/`: Dokumentasi tambahan, referensi perbaikan (`fix.md`), dan panduan lainnya.
+- `tests/`: Pengujian unit dan integrasi.
+
 ## 📋 Persyaratan Sistem
 
 **Minimum:**

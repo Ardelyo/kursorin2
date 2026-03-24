@@ -6,7 +6,7 @@ import cv2
 from loguru import logger
 
 # Add project root to path
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from kursorin.config import load_config
 from kursorin.core.kursorin_engine import KursorinEngine
@@ -37,7 +37,20 @@ def run_benchmark():
     if not webcam_available:
         logger.warning("No webcam detected. Using synthetic noise frames (FaceMesh will exit early, latency will be artificially low).")
         frame = np.random.randint(0, 255, (480, 640, 3), dtype=np.uint8)
-        engine._camera = type('MockCamera', (), {'read': lambda: frame.copy(), 'open': lambda: None, 'close': lambda: None, 'width': 640, 'height': 480, 'fps': 30})()
+        
+        class MockCamera:
+            def __init__(self):
+                self.width = 640
+                self.height = 480
+                self.fps = 30
+            def read(self):
+                return frame.copy()
+            def open(self):
+                pass
+            def close(self):
+                pass
+                
+        engine._camera = MockCamera()
 
     logger.info("Warming up engine (10 frames)...")
     for _ in range(10):

@@ -428,8 +428,9 @@ class KursorinEngine:
                             logger.error(f"Error in frame callback: {e}")
                 
                 # Frame rate limiting
-                if pm is not None:
-                    pm.frame_complete()
+                current_pm = self._performance_monitor
+                if current_pm is not None:
+                    current_pm.frame_complete()
                 
             except Exception as e:
                 logger.exception("Error in processing loop")
@@ -462,7 +463,9 @@ class KursorinEngine:
         face_mesh = self.shared_face_mesh
         if (self._head_tracker or self._eye_tracker) and not self._is_paused and face_mesh is not None:
             rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            face_mesh_results = face_mesh.process(rgb_frame)
+            mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb_frame)
+            timestamp_ms = int(timestamp * 1000)
+            face_mesh_results = face_mesh.detect_for_video(mp_image, timestamp_ms)
         
         # Process with each tracker
         head_result = None
