@@ -43,6 +43,29 @@ class GitUpdater:
         """Check if the current path is a git repository."""
         return self._is_git_repo
 
+    def auto_convert_to_git(self, remote_url: str = "https://github.com/Ardelyo/kursorin2.git") -> Tuple[bool, str]:
+        """
+        Automatically converts the current directory to a Git repository tracking the given remote.
+        This handles the scenario where the user downloaded the project as a ZIP.
+        """
+        if not self.check_git_installed():
+            return False, "Git not installed."
+        try:
+            subprocess.run(["git", "init"], cwd=self.repo_path, check=True, capture_output=True)
+            self._is_git_repo = True
+            
+            subprocess.run(["git", "remote", "add", "origin", remote_url], cwd=self.repo_path, check=True, capture_output=True)
+            subprocess.run(["git", "fetch", "origin"], cwd=self.repo_path, check=True, capture_output=True)
+            subprocess.run(["git", "branch", "-M", "main"], cwd=self.repo_path, check=True, capture_output=True)
+            
+            # Reset to origin/main mixed so local uncommitted changes are kept but history is synced
+            subprocess.run(["git", "reset", "--mixed", "origin/main"], cwd=self.repo_path, check=True, capture_output=True)
+            
+            return True, "Successfully initialized Git tracking."
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Auto Git init failed: {e.stderr.decode() if e.stderr else str(e)}")
+            return False, f"Failed to convert to Git repo: {e}"
+
     def check_for_updates(self) -> Tuple[bool, str]:
         """
         Check if updates are available on the remote.

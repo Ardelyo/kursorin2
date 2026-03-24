@@ -91,12 +91,12 @@ class SettingsScreen(Container):
             with TabPane("Tracking", id="tab-tracking"):
                 with VerticalScroll():
                     yield Static("[bold #06d6a0]Head Tracking[/]", classes="settings-group-title")
-                    yield ToggleRow("Enable Head Tracking", cfg.tracking.head_enabled, "head_enabled")
-                    yield InputRow("Sensitivity X", str(cfg.tracking.head_sensitivity_x), "head_sens_x")
-                    yield InputRow("Sensitivity Y", str(cfg.tracking.head_sensitivity_y), "head_sens_y")
-                    yield InputRow("Smoothing", str(cfg.tracking.head_smoothing), "head_smooth")
-                    yield ToggleRow("Invert X", cfg.tracking.invert_x, "invert_x")
-                    yield ToggleRow("Invert Y", cfg.tracking.invert_y, "invert_y")
+                    yield ToggleRow("Enable Head Tracking", cfg.tracking.head_enabled, "head-enabled")
+                    yield InputRow("Sensitivity X", str(cfg.tracking.head_sensitivity_x), "head-sens-x")
+                    yield InputRow("Sensitivity Y", str(cfg.tracking.head_sensitivity_y), "head-sens-y")
+                    yield InputRow("Smoothing", str(cfg.tracking.head_smoothing), "head-smooth")
+                    yield ToggleRow("Invert X", cfg.tracking.invert_x, "invert-x")
+                    yield ToggleRow("Invert Y", cfg.tracking.invert_y, "invert-y")
 
                     yield Rule()
                     yield Static("[bold #06d6a0]Eye Tracking[/]", classes="settings-group-title")
@@ -132,11 +132,11 @@ class SettingsScreen(Container):
             # ── Performance Tab ──
             with TabPane("Performance", id="tab-perf"):
                 with VerticalScroll():
-                    yield InputRow("Max FPS", str(cfg.performance.max_fps), "max_fps")
+                    yield InputRow("Max FPS", str(cfg.performance.max_fps), "max-fps")
                     yield ToggleRow("Multi-Threading", cfg.performance.use_threading, "threading")
-                    yield InputRow("Thread Count", str(cfg.performance.thread_count), "thread_count")
+                    yield InputRow("Thread Count", str(cfg.performance.thread_count), "thread-count")
                     yield ToggleRow("GPU Acceleration", cfg.performance.use_gpu, "gpu")
-                    yield ToggleRow("Power Save Mode", cfg.performance.power_save_mode, "power_save")
+                    yield ToggleRow("Power Save Mode", cfg.performance.power_save_mode, "power-save")
 
             # ── Appearance Tab ──
             with TabPane("Appearance", id="tab-appearance"):

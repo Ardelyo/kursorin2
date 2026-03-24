@@ -209,42 +209,63 @@ class KursorinTUI(App):
             from textual.widgets import Switch, Input
             cfg = load_config()
 
-            # Collect all switch and input values
-            switch_map = {
-                "sw-head_enabled": ("tracking", "head_enabled"),
-                "sw-invert_x": ("tracking", "invert_x"),
-                "sw-invert_y": ("tracking", "invert_y"),
-                "sw-eye_enabled": ("tracking", "eye_enabled"),
-                "sw-hand_enabled": ("tracking", "hand_enabled"),
-                "sw-blink_click": ("click", "blink_click_enabled"),
-                "sw-dwell_click": ("click", "dwell_click_enabled"),
-                "sw-pinch_click": ("click", "pinch_click_enabled"),
-                "sw-mouth_click": ("click", "mouth_click_enabled"),
-                "sw-cam_mirror": ("camera", "flip_horizontal"),
-                "sw-cam_ae": ("camera", "auto_exposure"),
-                "sw-cam_af": ("camera", "auto_focus"),
-                "sw-threading": ("performance", "use_threading"),
-                "sw-gpu": ("performance", "use_gpu"),
-                "sw-power_save": ("performance", "power_save_mode"),
-                "sw-show_preview": ("ui", "show_preview"),
-                "sw-show_overlay": ("ui", "show_overlay"),
-                "sw-cursor_trail": ("ui", "cursor_trail"),
-                "sw-audio_fb": ("ui", "audio_feedback"),
-                "sw-click_sound": ("ui", "click_sound"),
-                "sw-high_contrast": ("ui", "high_contrast"),
-                "sw-large_ui": ("ui", "large_ui"),
-                "sw-notifs": ("ui", "show_notifications"),
+            # Mapping of widget prefixes and IDs to (section, key, type)
+            # types: bool, int, float
+            config_map = {
+                "sw-head-enabled": ("tracking", "head_enabled", bool),
+                "sw-invert-x": ("tracking", "invert_x", bool),
+                "sw-invert-y": ("tracking", "invert_y", bool),
+                "sw-eye-enabled": ("tracking", "eye_enabled", bool),
+                "sw-hand-enabled": ("tracking", "hand_enabled", bool),
+                "sw-blink-click": ("click", "blink_click_enabled", bool),
+                "sw-dwell-click": ("click", "dwell_click_enabled", bool),
+                "sw-pinch-click": ("click", "pinch_click_enabled", bool),
+                "sw-mouth-click": ("click", "mouth_click_enabled", bool),
+                "sw-cam-mirror": ("camera", "flip_horizontal", bool),
+                "sw-cam-ae": ("camera", "auto_exposure", bool),
+                "sw-cam-af": ("camera", "auto_focus", bool),
+                "sw-threading": ("performance", "use_threading", bool),
+                "sw-gpu": ("performance", "use_gpu", bool),
+                "sw-power-save": ("performance", "power_save_mode", bool),
+                "sw-show-preview": ("ui", "show_preview", bool),
+                "sw-show-overlay": ("ui", "show_overlay", bool),
+                "sw-cursor-trail": ("ui", "cursor_trail", bool),
+                "sw-audio-fb": ("ui", "audio_feedback", bool),
+                "sw-click-sound": ("ui", "click_sound", bool),
+                "sw-high-contrast": ("ui", "high_contrast", bool),
+                "sw-large-ui": ("ui", "large_ui", bool),
+                "sw-notifs": ("ui", "show_notifications", bool),
+                
+                # Inputs
+                "inp-head-sens-x": ("tracking", "head_sensitivity_x", float),
+                "inp-head-sens-y": ("tracking", "head_sensitivity_y", float),
+                "inp-head-smooth": ("tracking", "head_smoothing", float),
+                "inp-blink-thresh": ("tracking", "eye_blink_threshold", float),
+                "inp-pinch-thresh": ("tracking", "pinch_threshold", float),
+                "inp-dwell-time": ("click", "dwell_time_ms", int),
+                "inp-dwell-radius": ("click", "dwell_radius_px", int),
+                "inp-cam-index": ("camera", "camera_index", int),
+                "inp-cam-width": ("camera", "camera_width", int),
+                "inp-cam-height": ("camera", "camera_height", int),
+                "inp-cam-fps": ("camera", "target_fps", int),
+                "inp-max-fps": ("performance", "max_fps", int),
+                "inp-thread-count": ("performance", "thread_count", int),
             }
 
-            for widget_id, (section, key) in switch_map.items():
+            for widget_id, (section, key, val_type) in config_map.items():
                 try:
-                    sw = self.query_one(f"#{widget_id}", Switch)
                     section_obj = getattr(cfg, section)
-                    setattr(section_obj, key, sw.value)
+                    if val_type == bool:
+                        sw = self.query_one(f"#{widget_id}", Switch)
+                        setattr(section_obj, key, sw.value)
+                    else:
+                        inp = self.query_one(f"#{widget_id}", Input)
+                        if inp.value.strip():
+                            setattr(section_obj, key, val_type(inp.value))
                 except Exception:
-                    pass
+                    continue
 
-            # Save
+            # Save to disk
             cfg_path = Path.home() / ".kursorin" / "config.yaml"
             cfg.to_file(cfg_path)
 

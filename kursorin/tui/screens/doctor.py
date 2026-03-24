@@ -51,7 +51,10 @@ class DoctorScreen(Container):
         yield ProgressBar(total=100, show_eta=False, id="doctor-progress")
         yield Static("")
 
-        yield VerticalScroll(id="doctor-results")
+        with VerticalScroll(id="doctor-results"):
+            yield Static("", id="doctor-log")
+            yield Static("", id="doctor-status")
+
         yield Static("", id="doctor-summary")
 
     async def run_diagnostics(self) -> None:
@@ -70,34 +73,38 @@ class DoctorScreen(Container):
         log_panel.update("")
         status_panel.update("")
         
-        # Use a dict for mutable state in the closure
-        state = {"total": 0, "passed": 0, "fixes": []}
+        class DoctorState:
+            def __init__(self):
+                self.total: int = 0
+                self.passed: int = 0
+                self.fixes: list[str] = []
 
-        def add_log(msg: str, type: str = "info"):
-            current_text = log_panel.value
-            state["total"] += 1
-            icon = "✅" if type == "pass" else "❌" if type == "fail" else "🔵"
-            color = "#06d6a0" if type == "pass" else "#ff4757" if type == "fail" else "#00d2d3"
+        state = DoctorState()
+
+        def add_log(msg: str, log_type: str = "info"):
+            state.total += 1
+            icon = "✅" if log_type == "pass" else "❌" if log_type == "fail" else "🔵"
+            color = "#06d6a0" if log_type == "pass" else "#ff4757" if log_type == "fail" else "#00d2d3"
             
-            if type == "pass":
-                state["passed"] += 1
+            if log_type == "pass":
+                state.passed += 1
             
-            log_panel.update(current_text + f"[{color}]{icon} {msg}[/]\n")
+            log_panel.update(str(log_panel.renderable) + f"[{color}]{icon} {msg}[/]\n")
             
             # Update status summary
-            status_panel.update(f"Progress: {state['passed']}/{state['total']} checks passed")
+            status_panel.update(f"Progress: {state.passed}/{state.total} checks passed")
 
         async def check(name: str, test_fn, fix_msg: str, step: int):
             try:
                 result = test_fn()
                 if result:
-                    add_log(name, type="pass")
+                    add_log(name, log_type="pass")
                 else:
-                    add_log(name, type="fail")
-                    state["fixes"].append(fix_msg)
+                    add_log(name, log_type="fail")
+                    state.fixes.append(fix_msg)
             except Exception as e:
-                add_log(f"{name} ([#576574]{e}[/])", type="fail")
-                state["fixes"].append(fix_msg)
+                add_log(f"{name} ([#576574]{e}[/])", log_type="fail")
+                state.fixes.append(fix_msg)
             progress.update(progress=step)
 
         # 1. OS
@@ -163,20 +170,39 @@ class DoctorScreen(Container):
             "Data directory (~/.kursorin)",
             lambda: (Path.home() / ".kursorin").exists(),
             "Data directory missing (will be created on first run).",
+            90
+        )
+
+        # 6. Auto-Update Readiness (Git)
+        def check_git_ready():
+            from kursorin.utils.updater import GitUpdater
+            updater = GitUpdater()
+            if not updater.check_git_installed():
+                return False
+            if not updater.is_git_repo():
+                # Doctor attempts to fix by auto-converting
+                success, _ = updater.auto_convert_to_git()
+                return success
+            return True
+
+        await check(
+            "Auto-Update System (Git Tracking)",
+            check_git_ready,
+            "Git missing or could not track updates. Install Git to enable.",
             100
         )
 
         # Final status
-        if state["passed"] == state["total"]:
+        if state.passed == state.total:
             status_panel.update("[bold #06d6a0]PASS: System is healthy![/]")
             summary_widget.update(
-                f"\n[bold #06d6a0]✓ All {state['total']} checks passed.[/]\n"
+                f"\n[bold #06d6a0]✓ All {state.total} checks passed.[/]\n"
                 "[#576574]Your system is ready to run KURSORIN.[/]"
             )
         else:
-            status_panel.update(f"[bold #ff4757]FAIL: {state['total'] - state['passed']} issues found[/]")
-            fix_text = "\n".join(f"  • {m}" for m in state["fixes"])
+            status_panel.update(f"[bold #ff4757]FAIL: {state.total - state.passed} issues found[/]")
+            fix_text = "\n".join(f"  • {m}" for m in state.fixes)
             summary_widget.update(
-                f"\n[bold #ee5a6f]⚠ {state['passed']}/{state['total']} checks passed.[/]\n\n"
+                f"\n[bold #ee5a6f]⚠ {state.passed}/{state.total} checks passed.[/]\n\n"
                 f"[bold]Recommended fixes:[/]\n{fix_text}"
             )

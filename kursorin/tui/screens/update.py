@@ -75,8 +75,12 @@ class UpdateScreen(Container):
                 return
 
             if not updater.is_git_repo():
-                await log.mount(Static("[#ee5a6f]✖ Not a Git repository. To enable automatic updates, please clone via 'git clone'.[/]"))
-                return
+                await log.mount(Static("[#e1b12c]⚠ Not a Git repository. Attempting auto-conversion to Git...[/]"))
+                success, git_msg = updater.auto_convert_to_git()
+                if not success:
+                    await log.mount(Static(f"[#ee5a6f]✖ Auto-conversion failed: {git_msg}[/]"))
+                    return
+                await log.mount(Static("[#06d6a0]✓ Successfully tracked Git repository![/]"))
 
             available, msg = updater.check_for_updates()
             if available:

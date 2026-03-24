@@ -235,24 +235,24 @@ def config_show():
     _print_full_config(cfg)
 
 
-def _set_nested(obj, key: str, value: str):
     parts = key.split(".")
+    target = obj
     for part in parts[:-1]:
-        obj = getattr(obj, part)
+        target = getattr(target, part)
 
     attr_name = parts[-1]
-    current = getattr(obj, attr_name)
+    current_val = getattr(target, attr_name)
 
-    if isinstance(current, bool):
+    if isinstance(current_val, bool):
         coerced = value.lower() in ("true", "1", "yes")
-    elif isinstance(current, int):
+    elif isinstance(current_val, int):
         coerced = int(value)
-    elif isinstance(current, float):
+    elif isinstance(current_val, float):
         coerced = float(value)
     else:
         coerced = value
 
-    setattr(obj, attr_name, coerced)
+    setattr(target, attr_name, coerced)
 
 
 def _print_full_config(cfg):
@@ -350,19 +350,16 @@ def doctor():
     from pathlib import Path
     init_lang()
     
-    console.print(f"[{COLORS['muted']}]{t('doctor.running')}[/]\n")
-    
-    passed = 0
-    total = 0
+    # Use a dict for mutable state in the closure
+    state = {"passed": 0, "total": 0}
     issues = []
 
     def check(name: str, test_fn, fix_msg: str):
-        nonlocal passed, total
-        total += 1
+        state["total"] += 1
         try:
             if test_fn():
                 console.print(f"  [green]✓[/] {name}")
-                passed += 1
+                state["passed"] += 1
             else:
                 console.print(f"  [red]✖[/] {name}")
                 issues.append(fix_msg)
@@ -412,16 +409,16 @@ def doctor():
 
     console.print()
 
-    if passed == total:
+    if state["passed"] == state["total"]:
         success = Panel(
-            f"{t('doctor.all_passed', n=total)}\n{t('doctor.system_ready')}",
+            f"{t('doctor.all_passed', n=state['total'])}\n{t('doctor.system_ready')}",
             title=f"[bold green]✓ {t('doctor.health_check')}[/]",
             border_style="green"
         )
         console.print(success)
     else:
         err = Panel(
-            f"[red]{t('doctor.passed_n', passed=passed, total=total)}[/]\n\n[bold]{t('doctor.recommended_fixes')}:[/]\n" + 
+            f"[red]{t('doctor.passed_n', passed=state['passed'], total=state['total'])}[/]\n\n[bold]{t('doctor.recommended_fixes')}:[/]\n" + 
             "\n".join(f"  • {msg}" for msg in set(issues)),
             title=f"[bold red]⚠ {t('doctor.issues_found')}[/]",
             border_style="red"
@@ -544,8 +541,12 @@ def update(force):
             return
         
         if not updater.is_git_repo():
-            console.print(f"[{COLORS['error']}]✖ {t('update.error_repo')}[/]")
-            return
+            console.print(f"[{COLORS['warning']}]⚠ Not a Git repository. Attempting auto-conversion to Git...[/]")
+            success, git_msg = updater.auto_convert_to_git()
+            if not success:
+                console.print(f"[{COLORS['error']}]✖ Auto-conversion failed: {git_msg}[/]")
+                return
+            console.print(f"[{COLORS['success']}]✓ Successfully converted to a tracked Git repository![/]")
 
         available, msg = updater.check_for_updates()
         
