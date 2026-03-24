@@ -1,8 +1,14 @@
 """
-KURSORIN UI
+KURSORIN UI Package
 
-User interface components.
+Provides the graphical user interface components.
 """
 
-from kursorin.ui.app_window import AppWindow
-from kursorin.ui.overlay import Overlay
+from kursorin.ui.theme import PALETTE, TYPO, SPACING, apply_theme
+
+__all__ = [
+    "PALETTE",
+    "TYPO",
+    "SPACING",
+    "apply_theme",
+]

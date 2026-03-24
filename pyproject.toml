@@ -47,6 +47,8 @@ dependencies = [
     "pillow>=9.0.0",
     "pynput>=1.7.0",
     "screeninfo>=0.8.0",
+    "rich>=13.0.0",
+    "customtkinter>=5.2.0",
 ]
 
 [project.optional-dependencies]

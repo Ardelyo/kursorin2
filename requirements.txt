@@ -19,6 +19,10 @@ PyYAML>=6.0
 loguru>=0.7.0
 tqdm>=4.65.0
 click>=8.1.0
+rich>=13.0.0
+
+# Modern GUI
+customtkinter>=5.2.0
 
 # GUI (optional - for tkinter alternative)
 # PyQt5>=5.15.0  # Uncomment if using PyQt5

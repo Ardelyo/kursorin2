@@ -1,173 +1,517 @@
 """
-Main Application Window
+Main Application Window — KURSORIN
 
-Tkinter-based GUI for KURSORIN.
+Premium CustomTkinter GUI with sidebar navigation,
+live video preview, status bar, and settings panel.
 """
 
-import tkinter as tk
-from tkinter import ttk
+import customtkinter as ctk
 from PIL import Image, ImageTk
 import cv2
 import threading
 import time
+from typing import Optional
 
 from loguru import logger
 from kursorin.config import KursorinConfig
 from kursorin.core.kursorin_engine import KursorinEngine, FrameResult
+from kursorin.ui.theme import PALETTE, TYPO, SPACING, apply_theme
 from kursorin.ui.overlay import Overlay
 from kursorin.ui.calibration_window import CalibrationWindow
+from kursorin.ui.settings_panel import SettingsPanel
 
 
 class AppWindow:
-    """
-    Main GUI window.
-    """
-    
+    """Main KURSORIN GUI application window."""
+
     def __init__(self, engine: KursorinEngine, config: KursorinConfig):
         self.engine = engine
         self.config = config
-        self.root = tk.Tk()
-        self.root.title("KURSORIN")
-        self.root.geometry("800x600")
-        
         self.overlay = Overlay(config)
-        
-        self._setup_ui()
-        
+
+        # Apply theme
+        apply_theme()
+
+        # ── Root window ───────────────────────────────────────────────────
+        self.root = ctk.CTk()
+        self.root.title("KURSORIN")
+        self.root.geometry("1020x680")
+        self.root.minsize(800, 520)
+        self.root.configure(fg_color=PALETTE.bg_deepest)
+
+        # Set icon if available
+        try:
+            self.root.iconbitmap("kursorin/assets/icons/kursorin.ico")
+        except Exception:
+            pass
+
+        # ── State ─────────────────────────────────────────────────────────
+        self._current_view = "home"
+        self._photo_image = None       # Keep reference for GC
+        self._video_after_id = None
+
+        # ── Build UI ──────────────────────────────────────────────────────
+        self._build_sidebar()
+        self._build_content_area()
+        self._build_status_bar()
+        self._build_home_view()
+
         # Connect engine callbacks
         self.engine.on_frame(self._on_frame)
-        
+
         # Handle close
         self.root.protocol("WM_DELETE_WINDOW", self._on_close)
-        
-    def _setup_ui(self):
-        """Setup UI components."""
-        # Main container
-        main_frame = ttk.Frame(self.root)
-        main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
-        
-        # Video Preview
-        self.video_label = ttk.Label(main_frame)
-        self.video_label.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        
-        # Controls
-        controls_frame = ttk.Frame(main_frame, width=200)
-        controls_frame.pack(side=tk.RIGHT, fill=tk.Y, padx=10)
-        
-        # Start/Stop Button
-        self.btn_start = ttk.Button(controls_frame, text="Start", command=self._toggle_tracking)
-        self.btn_start.pack(fill=tk.X, pady=5)
-        
-        # Status Label
-        self.lbl_status = ttk.Label(controls_frame, text="Status: Idle")
-        self.lbl_status.pack(fill=tk.X, pady=5)
-        
-        # Settings (Simplified)
-        ttk.Label(controls_frame, text="Sensitivity").pack(fill=tk.X, pady=(20, 5))
-        self.scale_sens = ttk.Scale(controls_frame, from_=0.1, to=5.0, value=self.config.tracking.head_sensitivity_x)
-        self.scale_sens.pack(fill=tk.X)
 
-        # Calibration Button
-        self.btn_calibrate = ttk.Button(controls_frame, text="Calibrate", command=self._start_calibration)
-        self.btn_calibrate.pack(fill=tk.X, pady=20)
-        
-        # Mirroring Controls
-        mirror_frame = ttk.LabelFrame(controls_frame, text="Mirroring")
-        mirror_frame.pack(fill=tk.X, pady=10)
-        
-        self.var_invert_x = tk.BooleanVar(value=self.config.tracking.invert_x)
-        self.chk_invert_x = ttk.Checkbutton(mirror_frame, text="Invert X", variable=self.var_invert_x, command=self._update_config)
-        self.chk_invert_x.pack(anchor=tk.W)
-        
-        self.var_invert_y = tk.BooleanVar(value=self.config.tracking.invert_y)
-        self.chk_invert_y = ttk.Checkbutton(mirror_frame, text="Invert Y", variable=self.var_invert_y, command=self._update_config)
-        self.chk_invert_y.pack(anchor=tk.W)
-        
-        # Accessibility Scenarios
-        scenario_frame = ttk.LabelFrame(controls_frame, text="Scenario")
-        scenario_frame.pack(fill=tk.X, pady=10)
-        
-        self.scenarios = ["Default", "Hands-Free", "No Head Tracking"]
-        self.cmb_scenario = ttk.Combobox(scenario_frame, values=self.scenarios, state="readonly")
-        self.cmb_scenario.current(0)
-        self.cmb_scenario.pack(fill=tk.X, pady=5)
-        self.cmb_scenario.bind("<<ComboboxSelected>>", self._on_scenario_change)
-        
+    # =====================================================================
+    #   SIDEBAR
+    # =====================================================================
+
+    def _build_sidebar(self):
+        self.sidebar = ctk.CTkFrame(
+            self.root,
+            width=200,
+            corner_radius=0,
+            fg_color=PALETTE.bg_deep,
+            border_width=0,
+        )
+        self.sidebar.pack(side="left", fill="y")
+        self.sidebar.pack_propagate(False)
+
+        # Logo / Title
+        logo_frame = ctk.CTkFrame(self.sidebar, fg_color="transparent", height=72)
+        logo_frame.pack(fill="x", padx=SPACING.lg, pady=(SPACING.xl, SPACING.sm))
+        logo_frame.pack_propagate(False)
+
+        brand = ctk.CTkLabel(
+            logo_frame,
+            text="◉ KURSORIN",
+            font=(TYPO.family_display, TYPO.size_h2, TYPO.weight_bold),
+            text_color=PALETTE.accent_cyan,
+            anchor="w",
+        )
+        brand.pack(side="top", anchor="w")
+
+        subtitle = ctk.CTkLabel(
+            logo_frame,
+            text="Hands-free Control",
+            font=(TYPO.family_body, TYPO.size_small),
+            text_color=PALETTE.fg_muted,
+            anchor="w",
+        )
+        subtitle.pack(side="top", anchor="w")
+
+        # Divider
+        ctk.CTkFrame(self.sidebar, fg_color=PALETTE.border_subtle, height=1).pack(
+            fill="x", padx=SPACING.lg, pady=SPACING.sm,
+        )
+
+        # Navigation Buttons
+        self.nav_buttons = {}
+        nav_items = [
+            ("home", "🏠  Home"),
+            ("settings", "⚙  Settings"),
+        ]
+
+        for key, label in nav_items:
+            btn = ctk.CTkButton(
+                self.sidebar,
+                text=label,
+                font=(TYPO.family_body, TYPO.size_body),
+                fg_color="transparent",
+                hover_color=PALETTE.bg_elevated,
+                text_color=PALETTE.fg_secondary,
+                anchor="w",
+                height=38,
+                corner_radius=SPACING.radius_md,
+                command=lambda k=key: self._switch_view(k),
+            )
+            btn.pack(fill="x", padx=SPACING.sm, pady=2)
+            self.nav_buttons[key] = btn
+
+        self._highlight_nav("home")
+
+        # ── Bottom controls ───────────────────────────────────────────────
+        bottom = ctk.CTkFrame(self.sidebar, fg_color="transparent")
+        bottom.pack(side="bottom", fill="x", padx=SPACING.lg, pady=SPACING.lg)
+
+        # Start/Stop button
+        self.btn_toggle = ctk.CTkButton(
+            bottom,
+            text="▶  Start Tracking",
+            font=(TYPO.family_body, TYPO.size_body, TYPO.weight_bold),
+            fg_color=PALETTE.accent_cyan,
+            hover_color=PALETTE.accent_cyan_hover,
+            text_color=PALETTE.fg_inverse,
+            corner_radius=SPACING.radius_md,
+            height=40,
+            command=self._toggle_tracking,
+        )
+        self.btn_toggle.pack(fill="x", pady=(0, SPACING.sm))
+
+        # Calibrate button
+        self.btn_calibrate = ctk.CTkButton(
+            bottom,
+            text="🎯  Calibrate",
+            font=(TYPO.family_body, TYPO.size_body),
+            fg_color=PALETTE.bg_elevated,
+            hover_color=PALETTE.border_default,
+            text_color=PALETTE.fg_secondary,
+            corner_radius=SPACING.radius_md,
+            height=36,
+            command=self._start_calibration,
+        )
+        self.btn_calibrate.pack(fill="x")
+
+        # Scenario selector
+        ctk.CTkFrame(bottom, fg_color=PALETTE.border_subtle, height=1).pack(
+            fill="x", pady=SPACING.md,
+        )
+
+        scenario_label = ctk.CTkLabel(
+            bottom, text="Scenario", font=(TYPO.family_body, TYPO.size_small),
+            text_color=PALETTE.fg_muted, anchor="w",
+        )
+        scenario_label.pack(fill="x")
+
+        self.scenario_var = ctk.StringVar(value="Default")
+        self.scenario_menu = ctk.CTkSegmentedButton(
+            bottom,
+            values=["Default", "Hands-Free", "No Head"],
+            variable=self.scenario_var,
+            font=(TYPO.family_body, TYPO.size_tiny),
+            selected_color=PALETTE.accent_cyan,
+            selected_hover_color=PALETTE.accent_cyan_hover,
+            unselected_color=PALETTE.bg_input,
+            unselected_hover_color=PALETTE.bg_elevated,
+            text_color=PALETTE.fg_inverse,
+            text_color_disabled=PALETTE.fg_muted,
+            corner_radius=SPACING.radius_sm,
+            height=28,
+            command=self._on_scenario_change,
+        )
+        self.scenario_menu.pack(fill="x", pady=(SPACING.xs, 0))
+
+    def _highlight_nav(self, active_key: str):
+        for key, btn in self.nav_buttons.items():
+            if key == active_key:
+                btn.configure(
+                    fg_color=PALETTE.bg_elevated,
+                    text_color=PALETTE.accent_cyan,
+                )
+            else:
+                btn.configure(
+                    fg_color="transparent",
+                    text_color=PALETTE.fg_secondary,
+                )
+
+    # =====================================================================
+    #   CONTENT AREA
+    # =====================================================================
+
+    def _build_content_area(self):
+        self.content = ctk.CTkFrame(
+            self.root,
+            fg_color=PALETTE.bg_deepest,
+            corner_radius=0,
+        )
+        self.content.pack(side="left", fill="both", expand=True)
+
+        # Container for swappable views
+        self.view_container = ctk.CTkFrame(self.content, fg_color="transparent")
+        self.view_container.pack(fill="both", expand=True)
+
+    def _build_home_view(self):
+        """Build the home/tracking view."""
+        self.home_frame = ctk.CTkFrame(self.view_container, fg_color="transparent")
+
+        # Header
+        header = ctk.CTkFrame(self.home_frame, fg_color="transparent", height=50)
+        header.pack(fill="x", padx=SPACING.xl, pady=(SPACING.lg, SPACING.sm))
+        header.pack_propagate(False)
+
+        title = ctk.CTkLabel(
+            header, text="Dashboard",
+            font=(TYPO.family_display, TYPO.size_h1, TYPO.weight_bold),
+            text_color=PALETTE.fg_primary, anchor="w",
+        )
+        title.pack(side="left")
+
+        # Video preview area
+        self.video_frame = ctk.CTkFrame(
+            self.home_frame,
+            fg_color=PALETTE.bg_surface,
+            corner_radius=SPACING.radius_lg,
+            border_width=1,
+            border_color=PALETTE.border_subtle,
+        )
+        self.video_frame.pack(fill="both", expand=True, padx=SPACING.xl, pady=(0, SPACING.md))
+
+        # Placeholder when not tracking
+        self.video_placeholder = ctk.CTkLabel(
+            self.video_frame,
+            text="◉\n\nCamera preview will appear here\nPress Start Tracking to begin",
+            font=(TYPO.family_body, TYPO.size_body),
+            text_color=PALETTE.fg_muted,
+            justify="center",
+        )
+        self.video_placeholder.place(relx=0.5, rely=0.5, anchor="center")
+
+        # Video label (hidden until tracking)
+        self.video_label = ctk.CTkLabel(
+            self.video_frame, text="",
+            fg_color="transparent",
+        )
+
+        # Metrics row
+        self.metrics_frame = ctk.CTkFrame(
+            self.home_frame,
+            fg_color=PALETTE.bg_surface,
+            corner_radius=SPACING.radius_lg,
+            border_width=1,
+            border_color=PALETTE.border_subtle,
+            height=70,
+        )
+        self.metrics_frame.pack(fill="x", padx=SPACING.xl, pady=(0, SPACING.lg))
+        self.metrics_frame.pack_propagate(False)
+
+        # Metric cards inside
+        self.metric_labels = {}
+        metrics = [
+            ("fps", "FPS", "0.0"),
+            ("latency", "Latency", "0 ms"),
+            ("state", "State", "Idle"),
+            ("frames", "Frames", "0"),
+        ]
+
+        for i, (key, label, default) in enumerate(metrics):
+            card = ctk.CTkFrame(self.metrics_frame, fg_color="transparent")
+            card.pack(side="left", fill="both", expand=True, padx=SPACING.lg, pady=SPACING.sm)
+
+            name_lbl = ctk.CTkLabel(
+                card, text=label,
+                font=(TYPO.family_body, TYPO.size_tiny),
+                text_color=PALETTE.fg_muted, anchor="w",
+            )
+            name_lbl.pack(anchor="w")
+
+            val_lbl = ctk.CTkLabel(
+                card, text=default,
+                font=(TYPO.family_mono, TYPO.size_h3, TYPO.weight_bold),
+                text_color=PALETTE.accent_cyan, anchor="w",
+            )
+            val_lbl.pack(anchor="w")
+            self.metric_labels[key] = val_lbl
+
+            # Add separator between metrics (except last)
+            if i < len(metrics) - 1:
+                sep = ctk.CTkFrame(self.metrics_frame, fg_color=PALETTE.border_subtle, width=1)
+                sep.pack(side="left", fill="y", pady=SPACING.md)
+
+        # Show home view by default
+        self.home_frame.pack(fill="both", expand=True)
+
+    def _build_settings_view(self):
+        """Build settings view (lazy loaded)."""
+        if hasattr(self, 'settings_frame'):
+            return
+
+        self.settings_frame = SettingsPanel(
+            self.view_container,
+            self.config,
+            on_save=self._on_settings_saved,
+        )
+
+    # =====================================================================
+    #   STATUS BAR
+    # =====================================================================
+
+    def _build_status_bar(self):
+        self.status_bar = ctk.CTkFrame(
+            self.root,
+            height=28,
+            fg_color=PALETTE.bg_deep,
+            corner_radius=0,
+        )
+        self.status_bar.pack(side="bottom", fill="x")
+        self.status_bar.pack_propagate(False)
+
+        # Status text
+        self.lbl_status = ctk.CTkLabel(
+            self.status_bar,
+            text="  Ready",
+            font=(TYPO.family_body, TYPO.size_tiny),
+            text_color=PALETTE.fg_muted,
+            anchor="w",
+        )
+        self.lbl_status.pack(side="left", padx=SPACING.sm)
+
+        # Version
+        from kursorin import __version__
+        ver_label = ctk.CTkLabel(
+            self.status_bar,
+            text=f"v{__version__}  ",
+            font=(TYPO.family_mono, TYPO.size_tiny),
+            text_color=PALETTE.fg_muted,
+            anchor="e",
+        )
+        ver_label.pack(side="right", padx=SPACING.sm)
+
+    # =====================================================================
+    #   VIEW SWITCHING
+    # =====================================================================
+
+    def _switch_view(self, view_name: str):
+        self._current_view = view_name
+        self._highlight_nav(view_name)
+
+        # Hide all views
+        for child in self.view_container.winfo_children():
+            child.pack_forget()
+
+        if view_name == "home":
+            self.home_frame.pack(fill="both", expand=True)
+        elif view_name == "settings":
+            self._build_settings_view()
+            self.settings_frame.pack(fill="both", expand=True)
+
+    # =====================================================================
+    #   TRACKING CONTROLS
+    # =====================================================================
+
     def _toggle_tracking(self):
         if self.engine.is_running:
             self.engine.stop()
-            self.btn_start.configure(text="Start")
-            self.lbl_status.configure(text="Status: Stopped")
+            self.btn_toggle.configure(
+                text="▶  Start Tracking",
+                fg_color=PALETTE.accent_cyan,
+                hover_color=PALETTE.accent_cyan_hover,
+            )
+            self.lbl_status.configure(text="  Stopped")
+            self.video_label.pack_forget()
+            self.video_placeholder.place(relx=0.5, rely=0.5, anchor="center")
+            # Reset metrics
+            for key, lbl in self.metric_labels.items():
+                if key == "state":
+                    lbl.configure(text="Idle", text_color=PALETTE.fg_muted)
+                else:
+                    lbl.configure(text="0" if key == "frames" else "0.0" if key == "fps" else "0 ms")
         else:
             try:
                 self.engine.start()
-                self.btn_start.configure(text="Stop")
-                self.lbl_status.configure(text="Status: Running")
+                self.btn_toggle.configure(
+                    text="⏹  Stop Tracking",
+                    fg_color=PALETTE.accent_red,
+                    hover_color="#dc2626",
+                )
+                self.lbl_status.configure(text="  ● Tracking active")
+                self.video_placeholder.place_forget()
+                self.video_label.pack(fill="both", expand=True, padx=2, pady=2)
+                # Start metric update loop
+                self._update_metrics()
             except Exception as e:
-                self.lbl_status.configure(text=f"Error: {str(e)}")
+                self.lbl_status.configure(text=f"  ✖ Error: {str(e)[:50]}")
 
     def _start_calibration(self):
-        """Start the calibration process."""
         if not self.engine.is_running:
-            self.lbl_status.configure(text="Error: Start engine first")
+            self.lbl_status.configure(text="  Start tracking first")
             return
-            
+
         self.engine.start_calibration()
         CalibrationWindow(self.root, self.engine, self._on_calibration_complete)
-        
+
     def _on_calibration_complete(self):
-        """Handle calibration completion."""
         self.engine.stop_calibration()
-        self.lbl_status.configure(text="Status: Calibration Complete")
-        
-    def _update_config(self):
-        """Update configuration from UI."""
-        self.config.tracking.invert_x = self.var_invert_x.get()
-        self.config.tracking.invert_y = self.var_invert_y.get()
-        
-    def _on_scenario_change(self, event):
-        """Handle scenario change."""
-        scenario = self.cmb_scenario.get()
-        
+        self.engine.save_calibration()
+        self.lbl_status.configure(text="  ✓ Calibration complete")
+
+    def _on_scenario_change(self, scenario: str):
         if scenario == "Default":
             self.config.tracking.head_enabled = True
             self.config.tracking.eye_enabled = True
             self.config.tracking.hand_enabled = True
             self.config.click.pinch_click_enabled = True
-            
         elif scenario == "Hands-Free":
             self.config.tracking.head_enabled = True
             self.config.tracking.eye_enabled = True
             self.config.tracking.hand_enabled = False
             self.config.click.pinch_click_enabled = False
-            
-        elif scenario == "No Head Tracking":
+        elif scenario == "No Head":
             self.config.tracking.head_enabled = False
             self.config.tracking.eye_enabled = True
             self.config.tracking.hand_enabled = True
             self.config.click.pinch_click_enabled = True
-            
+
+        self.lbl_status.configure(text=f"  Scenario: {scenario}")
         logger.info(f"Switched to scenario: {scenario}")
-                
+
+    def _on_settings_saved(self):
+        self.lbl_status.configure(text="  ✓ Settings saved")
+
+    # =====================================================================
+    #   FRAME / VIDEO HANDLING
+    # =====================================================================
+
     def _on_frame(self, result: FrameResult):
-        """Handle new frame from engine."""
-        if result.frame is not None:
-            # Draw overlay
+        """Handle new frame from engine (called from engine thread)."""
+        if result.frame is not None and self._current_view == "home":
             vis_frame = self.overlay.draw(result.frame, result)
-            
-            # Store image in instance and request update on main thread
-            self.root.after(0, self._update_video_label_from_pil, img)
-    
-    def _update_video_label_from_pil(self, img: Image.Image):
-        """Update label with PIL image. Must be called on main thread."""
-        imgtk = ImageTk.PhotoImage(image=img)
-        self.video_label.configure(image=imgtk)
-        self.video_label.image = imgtk  # Keep reference
-        
+
+            # Convert BGR to RGB
+            rgb = cv2.cvtColor(vis_frame, cv2.COLOR_BGR2RGB)
+
+            # Resize to fit the video area
+            try:
+                vw = self.video_frame.winfo_width() - 4
+                vh = self.video_frame.winfo_height() - 4
+                if vw > 10 and vh > 10:
+                    h, w = rgb.shape[:2]
+                    scale = min(vw / w, vh / h)
+                    new_w, new_h = int(w * scale), int(h * scale)
+                    rgb = cv2.resize(rgb, (new_w, new_h))
+            except Exception:
+                pass
+
+            from PIL import Image
+            img = Image.fromarray(rgb)
+
+            self.root.after(0, self._update_video, img)
+
+    def _update_video(self, img):
+        """Update video label on main thread."""
+        try:
+            from PIL import ImageTk
+            photo = ImageTk.PhotoImage(image=img)
+            self.video_label.configure(image=photo, text="")
+            self._photo_image = photo  # Prevent GC
+        except Exception:
+            pass
+
+    def _update_metrics(self):
+        """Periodically update metric labels."""
+        if not self.engine.is_running:
+            return
+
+        try:
+            self.metric_labels["fps"].configure(text=f"{self.engine.fps:.1f}")
+            self.metric_labels["latency"].configure(text=f"{self.engine.latency_ms:.0f} ms")
+            self.metric_labels["frames"].configure(text=f"{self.engine._frame_count}")
+            self.metric_labels["state"].configure(
+                text=self.engine.state.name,
+                text_color=PALETTE.accent_cyan if self.engine.state.name == "TRACKING" else PALETTE.accent_amber,
+            )
+        except Exception:
+            pass
+
+        self.root.after(500, self._update_metrics)
+
+    # =====================================================================
+    #   LIFECYCLE
+    # =====================================================================
+
     def _on_close(self):
         if self.engine.is_running:
             self.engine.stop()
         self.root.destroy()
-        
+
     def run(self):
         self.root.mainloop()
