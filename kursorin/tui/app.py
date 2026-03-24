@@ -36,10 +36,8 @@ NAV_ITEMS = [
 
 
 class NavButton(Button):
-    """Sidebar navigation button."""
-
     def __init__(self, icon: str, label: str, screen_id: str, **kwargs):
-        super().__init__(f"{icon}  {label}", id=f"nav-{screen_id}", **kwargs)
+        super().__init__(f"{icon}  {label}", **kwargs)
         self.screen_id = screen_id
 
 
@@ -80,7 +78,7 @@ class KursorinTUI(App):
                     SIDEBAR_LOGO.format(version=__version__),
                     id="sidebar-logo"
                 )
-                yield Rule(style="#0d2137")
+                yield Rule()
 
                 for icon, label, screen_id in NAV_ITEMS:
                     cls = "nav-btn -active" if screen_id == "dashboard" else "nav-btn"
@@ -88,7 +86,7 @@ class KursorinTUI(App):
 
                 # Spacer to push lang to bottom
                 yield Static("", classes="spacer")
-                yield Rule(style="#0d2137")
+                yield Rule()
                 yield NavButton("🌐", "Language", "lang", classes="nav-btn")
 
             # Main content

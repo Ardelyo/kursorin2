@@ -82,7 +82,7 @@ class SettingsScreen(Container):
             "[bold #06d6a0]⚙  Settings[/]  [#576574]Configure KURSORIN[/]",
             classes="section-title"
         )
-        yield Rule(style="#0d2137")
+        yield Rule()
 
         cfg = load_config()
 
@@ -98,12 +98,12 @@ class SettingsScreen(Container):
                     yield ToggleRow("Invert X", cfg.tracking.invert_x, "invert_x")
                     yield ToggleRow("Invert Y", cfg.tracking.invert_y, "invert_y")
 
-                    yield Rule(style="#0d2137")
+                    yield Rule()
                     yield Static("[bold #06d6a0]Eye Tracking[/]", classes="settings-group-title")
                     yield ToggleRow("Enable Eye Tracking", cfg.tracking.eye_enabled, "eye_enabled")
                     yield InputRow("Blink Threshold", str(cfg.tracking.eye_blink_threshold), "blink_thresh")
 
-                    yield Rule(style="#0d2137")
+                    yield Rule()
                     yield Static("[bold #06d6a0]Hand Tracking[/]", classes="settings-group-title")
                     yield ToggleRow("Enable Hand Tracking", cfg.tracking.hand_enabled, "hand_enabled")
                     yield InputRow("Pinch Threshold", str(cfg.tracking.pinch_threshold), "pinch_thresh")

@@ -39,7 +39,7 @@ class DoctorScreen(Container):
             "[bold #06d6a0]🩺 Doctor[/]  [#576574]System diagnostics & health check[/]",
             classes="section-title"
         )
-        yield Rule(style="#0d2137")
+        yield Rule()
 
         yield Button(
             "▶  Run Diagnostics",
@@ -60,35 +60,44 @@ class DoctorScreen(Container):
         summary_widget = self.query_one("#doctor-summary", Static)
         progress = self.query_one("#doctor-progress", ProgressBar)
 
+        log_panel = self.query_one("#doctor-log", Static)
+        status_panel = self.query_one("#doctor-status", Static)
+        
         # Clear previous results
         results_container.remove_children()
         summary_widget.update("")
         progress.update(progress=0)
+        log_panel.update("")
+        status_panel.update("")
+        
+        # Use a dict for mutable state in the closure
+        state = {"total": 0, "passed": 0, "fixes": []}
 
-        checks = []
-        passed = 0
-        total = 0
+        def add_log(msg: str, type: str = "info"):
+            current_text = log_panel.value
+            state["total"] += 1
+            icon = "✅" if type == "pass" else "❌" if type == "fail" else "🔵"
+            color = "#06d6a0" if type == "pass" else "#ff4757" if type == "fail" else "#00d2d3"
+            
+            if type == "pass":
+                state["passed"] += 1
+            
+            log_panel.update(current_text + f"[{color}]{icon} {msg}[/]\n")
+            
+            # Update status summary
+            status_panel.update(f"Progress: {state['passed']}/{state['total']} checks passed")
 
         async def check(name: str, test_fn, fix_msg: str, step: int):
-            nonlocal passed, total
-            total += 1
             try:
                 result = test_fn()
                 if result:
-                    await results_container.mount(
-                        Static(f"  [#06d6a0]✓[/] {name}")
-                    )
-                    passed += 1
+                    add_log(name, type="pass")
                 else:
-                    await results_container.mount(
-                        Static(f"  [#ee5a6f]✖[/] {name}")
-                    )
-                    checks.append(fix_msg)
+                    add_log(name, type="fail")
+                    state["fixes"].append(fix_msg)
             except Exception as e:
-                await results_container.mount(
-                    Static(f"  [#ee5a6f]✖[/] {name} [#576574]({e})[/]")
-                )
-                checks.append(fix_msg)
+                add_log(f"{name} ([#576574]{e}[/])", type="fail")
+                state["fixes"].append(fix_msg)
             progress.update(progress=step)
 
         # 1. OS
@@ -157,15 +166,17 @@ class DoctorScreen(Container):
             100
         )
 
-        # Summary
-        if passed == total:
+        # Final status
+        if state["passed"] == state["total"]:
+            status_panel.update("[bold #06d6a0]PASS: System is healthy![/]")
             summary_widget.update(
-                f"\n[bold #06d6a0]✓ All {total} checks passed.[/]\n"
+                f"\n[bold #06d6a0]✓ All {state['total']} checks passed.[/]\n"
                 "[#576574]Your system is ready to run KURSORIN.[/]"
             )
         else:
-            fix_text = "\n".join(f"  • {m}" for m in checks)
+            status_panel.update(f"[bold #ff4757]FAIL: {state['total'] - state['passed']} issues found[/]")
+            fix_text = "\n".join(f"  • {m}" for m in state["fixes"])
             summary_widget.update(
-                f"\n[bold #ee5a6f]⚠ {passed}/{total} checks passed.[/]\n\n"
+                f"\n[bold #ee5a6f]⚠ {state['passed']}/{state['total']} checks passed.[/]\n\n"
                 f"[bold]Recommended fixes:[/]\n{fix_text}"
             )

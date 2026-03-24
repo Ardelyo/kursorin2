@@ -12,7 +12,7 @@ Example usage:
 For more information, visit: https://github.com/yourusername/kursorin
 """
 
-__version__ = "1.0.0"
+__version__ = "1.2.9"
 __author__ = "Ardellio Satria Anindito"
 __email__ = "email.ardellio@contoh.com"
 __license__ = "MIT"
