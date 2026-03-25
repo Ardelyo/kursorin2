@@ -27,6 +27,9 @@ class EyeTracker(BaseTracker):
         
         # Calibration data (placeholder)
         self.calibration_matrix = None
+        
+        # State for EMA smoothing
+        self.smoothed_gaze = None
 
     def process(self, frame: np.ndarray, **kwargs) -> TrackerResult:
         """
@@ -63,6 +66,22 @@ class EyeTracker(BaseTracker):
         # Average gaze
         avg_gaze_x = (left_gaze[0] + right_gaze[0]) / 2.0
         avg_gaze_y = (left_gaze[1] + right_gaze[1]) / 2.0
+        
+        # Apple EMA Smoothing to reduce jitter
+        # Optional: pull alpha from config if it exists, otherwise default to 0.15 for smooth eye movement
+        alpha = 0.15
+        if hasattr(self.config, 'smoothing') and hasattr(self.config.smoothing, 'eye_ema_alpha'):
+            alpha = self.config.smoothing.eye_ema_alpha
+            
+        smoothed = self.smoothed_gaze
+        if smoothed is None:
+            self.smoothed_gaze = np.array([avg_gaze_x, avg_gaze_y])
+            smoothed = self.smoothed_gaze
+        else:
+            self.smoothed_gaze = smoothed * (1 - alpha) + np.array([avg_gaze_x, avg_gaze_y]) * alpha
+            smoothed = self.smoothed_gaze
+            
+        avg_gaze_x, avg_gaze_y = smoothed[0], smoothed[1]
         
         # Apply sensitivity / Active Range
         range_x = self.config.tracking.eye_active_range_x
@@ -143,5 +162,5 @@ class EyeTracker(BaseTracker):
         return (x_ratio, y_ratio)
 
     def close(self) -> None:
-        if self.face_mesh:
-            self.face_mesh.close()
+        """Release resources."""
+        pass

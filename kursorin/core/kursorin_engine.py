@@ -352,7 +352,15 @@ class KursorinEngine:
         logger.info("Started calibration")
 
     def stop_calibration(self) -> None:
-        """Exit calibration mode."""
+        """Exit calibration mode and compute matrix."""
+        calib = self._calibration_model
+        if calib:
+            success = calib.compute()
+            if success:
+                logger.info("Calibration computed successfully")
+            else:
+                logger.warning("Calibration computation failed or lacked points")
+        
         self.state = TrackingState.TRACKING
         logger.info("Stopped calibration")
 
@@ -361,20 +369,33 @@ class KursorinEngine:
         Record data for a calibration point.
         
         Args:
-            x: Normalized X coordinate (0-1)
-            y: Normalized Y coordinate (0-1)
+            x: Normalized X coordinate (0-1) (Target point on screen)
+            y: Normalized Y coordinate (0-1) (Target point on screen)
         """
         if self.state != TrackingState.CALIBRATING:
             logger.warning("Ignored calibration point (not in calibration mode)")
             return
             
-        logger.info(f"Recording calibration point: ({x:.2f}, {y:.2f})")
-        # TODO: Implement actual data collection from EyeTracker
-        # This would involve telling the EyeTracker to store the current gaze features
-        # associated with this ground truth point.
-        if self._eye_tracker:
-            # self._eye_tracker.calibrate_point(x, y)
-            pass
+        latest_eye = self._latest_eye_result
+        if latest_eye is None or not latest_eye.valid:
+            logger.warning("No valid eye data available to record calibration point")
+            return
+            
+        # Get raw iris position (before any calibration mapping)
+        # Note: In _process_frame we mapped eye_result.position if calibrated,
+        # but the original raw values are in the metadata.
+        # Let's ensure we use the metadata gaze values for calibration source
+        metadata = latest_eye.metadata
+        if metadata is None:
+            logger.warning("Latest eye result missing metadata")
+            return
+        raw_x = metadata.get("gaze_x", 0.5)
+        raw_y = metadata.get("gaze_y", 0.5)
+            
+        logger.info(f"Recording calibration point: Screen({x:.2f}, {y:.2f}) -> Gaze({raw_x:.2f}, {raw_y:.2f})")
+        calib = self._calibration_model
+        if calib:
+            calib.add_point((raw_x, raw_y), (x, y))
     
     def _processing_loop(self) -> None:
         """Main processing loop running in separate thread."""

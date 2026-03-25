@@ -70,10 +70,21 @@ class HandTracker(BaseTracker):
         
         # Calculate pinch distance (Thumb tip to Index tip)
         thumb_tip = landmarks[HandLandmark.THUMB_TIP]
-        pinch_dist = np.sqrt(
+        raw_pinch_dist = np.sqrt(
             (thumb_tip.x - index_tip.x)**2 + 
             (thumb_tip.y - index_tip.y)**2
         )
+        
+        # Normalize pinch distance by hand width (Index MCP to Pinky MCP)
+        index_mcp = landmarks[HandLandmark.INDEX_MCP]
+        pinky_mcp = landmarks[HandLandmark.PINKY_MCP]
+        hand_size = np.sqrt(
+            (index_mcp.x - pinky_mcp.x)**2 + 
+            (index_mcp.y - pinky_mcp.y)**2
+        )
+        hand_size = max(hand_size, 1e-6)  # Prevent division by zero
+        
+        pinch_dist = raw_pinch_dist / hand_size
         
         # Recognize gesture
         gesture = self._recognize_gesture(landmarks, pinch_dist)
