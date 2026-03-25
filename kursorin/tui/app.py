@@ -169,65 +169,70 @@ class KursorinTUI(App):
             yield Static("", classes="spacer-sm")
 
             # ── DASHBOARD PANEL ──
-            with Container(id="panel-dashboard", classes="panel"):
-                yield Static("[bold #3b82f6]⬡ Dashboard[/]  [#64748b]System overview & quick actions[/]", classes="panel-title")
-                yield Rule()
-                with Horizontal(id="status-dots"):
-                    yield StatusDot("Camera", "idle")
-                    yield Static("  ")
-                    yield StatusDot("Head", "idle")
-                    yield Static("  ")
-                    yield StatusDot("Eye", "idle")
-                    yield Static("  ")
-                    yield StatusDot("Hand", "idle")
-                yield Static("", classes="spacer-xs")
-                with Horizontal(id="stats-row"):
-                    yield StatCard("—", "FPS", id="stat-fps")
-                    yield StatCard("—", "Latency", id="stat-latency")
-                    yield StatCard("—", "Uptime", id="stat-uptime")
-                    yield StatCard(f"v{__version__}", "Version", id="stat-version")
-                yield Static("", classes="spacer-xs")
-                yield Button("▶  Start Tracking", id="btn-start", classes="action-btn -primary")
-                yield Button("🎯  Calibrate Eyes", id="btn-calibrate", classes="action-btn")
-                yield Button("🖥  Launch GUI", id="btn-gui", classes="action-btn")
+            with Center():
+                with Container(id="panel-dashboard", classes="panel"):
+                    yield Static("[bold #3b82f6]⬡ Dashboard[/]  [#64748b]System overview & quick actions[/]", classes="panel-title")
+                    yield Rule()
+                    with Horizontal(id="status-dots"):
+                        yield StatusDot("Camera", "idle")
+                        yield Static("  ")
+                        yield StatusDot("Head", "idle")
+                        yield Static("  ")
+                        yield StatusDot("Eye", "idle")
+                        yield Static("  ")
+                        yield StatusDot("Hand", "idle")
+                    yield Static("", classes="spacer-xs")
+                    with Horizontal(id="stats-row"):
+                        yield StatCard("—", "FPS", id="stat-fps")
+                        yield StatCard("—", "Latency", id="stat-latency")
+                        yield StatCard("—", "Uptime", id="stat-uptime")
+                        yield StatCard(f"v{__version__}", "Version", id="stat-version")
+                    yield Static("", classes="spacer-xs")
+                    yield Button("▶  Start Tracking", id="btn-start", classes="action-btn -primary")
+                    yield Button("🎯  Calibrate Eyes", id="btn-calibrate", classes="action-btn")
+                    yield Button("🖥  Launch GUI", id="btn-gui", classes="action-btn")
 
             # ── SETTINGS PANEL ──
-            with Container(id="panel-settings", classes="panel"):
-                yield Static("[bold #3b82f6]⚙  Settings[/]  [#64748b]Configure KURSORIN[/]", classes="panel-title")
-                yield Rule()
-                # Settings content is loaded on demand
-                yield Static("[#64748b]Loading settings...[/]", id="settings-placeholder")
+            with Center():
+                with Container(id="panel-settings", classes="panel"):
+                    yield Static("[bold #3b82f6]⚙  Settings[/]  [#64748b]Configure KURSORIN[/]", classes="panel-title")
+                    yield Rule()
+                    # Settings content is loaded on demand
+                    yield Static("[#64748b]Loading settings...[/]", id="settings-placeholder")
 
             # ── DOCTOR PANEL ──
-            with Container(id="panel-doctor", classes="panel"):
-                yield Static("[bold #3b82f6]🩺 Doctor[/]  [#64748b]System diagnostics[/]", classes="panel-title")
-                yield Rule()
-                yield Button("▶  Run Diagnostics", id="btn-run-doctor", classes="action-btn -primary")
-                yield Static("", classes="spacer-xs")
-                yield ProgressBar(total=100, show_eta=False, id="doctor-progress")
-                yield Static("", id="doctor-log")
-                yield Static("", id="doctor-summary")
+            with Center():
+                with Container(id="panel-doctor", classes="panel"):
+                    yield Static("[bold #3b82f6]🩺 Doctor[/]  [#64748b]System diagnostics[/]", classes="panel-title")
+                    yield Rule()
+                    yield Button("▶  Run Diagnostics", id="btn-run-doctor", classes="action-btn -primary")
+                    yield Static("", classes="spacer-xs")
+                    yield ProgressBar(total=100, show_eta=False, id="doctor-progress")
+                    yield Static("", id="doctor-log")
+                    yield Static("", id="doctor-summary")
 
             # ── UPDATE PANEL ──
-            with Container(id="panel-update", classes="panel"):
-                yield Static("[bold #3b82f6]🔄 Updates[/]  [#64748b]Keep KURSORIN up to date[/]", classes="panel-title")
-                yield Rule()
-                yield Static(f"[#e2e8f0]Current:[/] [bold #3b82f6]v{__version__}[/]", id="cur-version")
-                yield Static("", classes="spacer-xs")
-                yield Button("🔍  Check for Updates", id="btn-check-update", classes="action-btn -primary")
-                yield Button("⬇  Pull Update", id="btn-pull-update", classes="action-btn")
-                yield Button("⚠  Force Update", id="btn-force-update", classes="action-btn -danger")
-                yield Static("", classes="spacer-xs")
-                yield Static("", id="update-log")
+            with Center():
+                with Container(id="panel-update", classes="panel"):
+                    yield Static("[bold #3b82f6]🔄 Updates[/]  [#64748b]Keep KURSORIN up to date[/]", classes="panel-title")
+                    yield Rule()
+                    yield Static(f"[#e2e8f0]Current:[/] [bold #3b82f6]v{__version__}[/]", id="cur-version")
+                    yield Static("", classes="spacer-xs")
+                    yield Button("🔍  Check for Updates", id="btn-check-update", classes="action-btn -primary")
+                    yield Button("⬇  Pull Update", id="btn-pull-update", classes="action-btn")
+                    yield Button("⚠  Force Update", id="btn-force-update", classes="action-btn -danger")
+                    yield Static("", classes="spacer-xs")
+                    yield Static("", id="update-log")
 
             # ── LANGUAGE PANEL ──
-            with Container(id="panel-lang", classes="panel"):
-                yield Static("[bold #3b82f6]🌐 Language[/]  [#64748b]Switch interface language[/]", classes="panel-title")
-                yield Rule()
-                yield Static("", id="lang-current")
-                yield Static("", classes="spacer-xs")
-                yield Button("🇺🇸  English", id="btn-lang-en", classes="action-btn")
-                yield Button("🇮🇩  Bahasa Indonesia", id="btn-lang-id", classes="action-btn")
+            with Center():
+                with Container(id="panel-lang", classes="panel"):
+                    yield Static("[bold #3b82f6]🌐 Language[/]  [#64748b]Switch interface language[/]", classes="panel-title")
+                    yield Rule()
+                    yield Static("", id="lang-current")
+                    yield Static("", classes="spacer-xs")
+                    yield Button("🇺🇸  English", id="btn-lang-en", classes="action-btn")
+                    yield Button("🇮🇩  Bahasa Indonesia", id="btn-lang-id", classes="action-btn")
 
             # Bottom spacer
             yield Static("", classes="spacer-lg")
@@ -500,15 +505,21 @@ class KursorinTUI(App):
         summary.update("")
         progress.update(progress=0)
 
-        state = {"total": 0, "passed": 0, "fixes": [], "text": ""}
+        class DiagResults:
+            total = 0
+            passed = 0
+            fixes = []
+            text = ""
+
+        results = DiagResults()
 
         def add(msg, ok=True):
-            state["total"] += 1
+            results.total += 1
             if ok:
-                state["passed"] += 1
+                results.passed += 1
             icon = "[#22c55e]✓[/]" if ok else "[#ef4444]✗[/]"
-            state["text"] += f"  {icon} {msg}\n"
-            log.update(state["text"])
+            results.text += f"  {icon} {msg}\n"
+            log.update(results.text)
 
         # Checks
         add("OS Compatibility", platform.system() in ("Windows", "Darwin", "Linux"))
@@ -524,7 +535,7 @@ class KursorinTUI(App):
             ok = importlib.util.find_spec(mod) is not None
             add(f"Module: {mod}", ok)
             if not ok:
-                state["fixes"].append(f"pip install {mod}")
+                results.fixes.append(f"pip install {mod}")
             step += 60 / len(deps)
             progress.update(progress=int(step))
 
@@ -542,13 +553,13 @@ class KursorinTUI(App):
         add("Data directory (~/.kursorin)", (Path.home() / ".kursorin").exists())
         progress.update(progress=100)
 
-        if state["passed"] == state["total"]:
-            summary.update(f"\n[bold #22c55e]✓ All {state['total']} checks passed — system healthy.[/]")
+        if results.passed == results.total:
+            summary.update(f"\n[bold #22c55e]✓ All {results.total} checks passed — system healthy.[/]")
         else:
-            fixes = "\n".join(f"  • {f}" for f in state["fixes"])
+            fix_text = "\n".join(f"  • {f}" for f in results.fixes)
             summary.update(
-                f"\n[bold #ef4444]⚠ {state['passed']}/{state['total']} passed[/]\n"
-                f"[#94a3b8]Fixes:[/]\n{fixes}"
+                f"\n[bold #ef4444]⚠ {results.passed}/{results.total} passed[/]\n"
+                f"[#94a3b8]Fixes:[/]\n{fix_text}"
             )
 
     # ── Update ────────────────────────────────────────────────────────────────
