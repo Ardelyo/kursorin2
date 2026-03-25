@@ -17,6 +17,7 @@
 [![Version](https://img.shields.io/badge/version-1.2.9-blue.svg?style=flat-square)](https://github.com/kursorin/kursorin/releases)
 [![Python](https://img.shields.io/badge/python-3.8%2B-brightgreen.svg?style=flat-square)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg?style=flat-square)](LICENSE)
+[![Dependencies](https://img.shields.io/badge/dependencies-view-blue.svg?style=flat-square)](docs/LICENSES.md)
 [![MediaPipe](https://img.shields.io/badge/mediapipe-0.10.x-orange.svg?style=flat-square)](https://mediapipe.dev/)
 [![OpenCV](https://img.shields.io/badge/opencv-4.x-red.svg?style=flat-square)](https://opencv.org/)
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg?style=flat-square)](#supported-platforms)
@@ -52,8 +53,8 @@
 - [Roadmap](#roadmap)
 - [Known Issues](#known-issues)
 - [Supported Platforms](#supported-platforms)
-- [License](#license)
-- [Citation](#citation)
+- [License & Credits](#license-&-credits)
+- [Citation & References](#citation-&-references)
 
 ---
 
@@ -547,15 +548,15 @@ For bug reports, please include: operating system, Python version, webcam model,
 
 ---
 
-## License
+## License & Credits
 
-This project is licensed under the **MIT License**. See [LICENSE](LICENSE) for details.
+This project is licensed under the **MIT License**. See the full [LICENSE](LICENSE) file for text, or visit our [Licensing & Credits](docs/LICENSES.md) page for details on third-party dependencies.
 
 ---
 
-## Citation
+## Citation & References
 
-If you use KURSORIN in academic research, please cite:
+If you use KURSORIN in academic research or professional projects, please cite it as follows:
 
 ```bibtex
 @software{anindito2024kursorin,
@@ -567,6 +568,8 @@ If you use KURSORIN in academic research, please cite:
   license   = {MIT}
 }
 ```
+
+For a deep dive into the underlying research and algorithms, see the [Architecture Guide](docs/architecture_guide.md).
 
 ---
 
