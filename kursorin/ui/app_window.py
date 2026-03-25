@@ -282,8 +282,12 @@ class AppWindow:
             for key, lbl in self.metric_labels.items():
                 if key == "state":
                     lbl.configure(text=t('metric.idle'), text_color=PALETTE.fg_muted)
+                elif key == "latency":
+                    lbl.configure(text="0 ms")
+                elif key == "fps":
+                    lbl.configure(text="0.0")
                 else:
-                    lbl.configure(text="0" if key == "frames" else "0.0" if key == "fps" else "0 ms")
+                    lbl.configure(text="0")
         else:
             try:
                 self.engine.start()

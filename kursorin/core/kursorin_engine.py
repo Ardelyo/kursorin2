@@ -385,6 +385,7 @@ class KursorinEngine:
         # Note: In _process_frame we mapped eye_result.position if calibrated,
         # but the original raw values are in the metadata.
         # Let's ensure we use the metadata gaze values for calibration source
+        assert latest_eye is not None
         metadata = latest_eye.metadata
         if metadata is None:
             logger.warning("Latest eye result missing metadata")

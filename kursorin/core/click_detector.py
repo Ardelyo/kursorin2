@@ -126,6 +126,7 @@ class ClickDetector:
                 elif self.pinch_start_time is not None:
                     # Short pinch = left click
                     pinch_time = self.pinch_start_time
+                    assert pinch_time is not None
                     duration = time.time() - pinch_time
                     if duration <= (self.config.click.pinch_hold_time_ms / 1000.0):
                         return ClickType.LEFT_CLICK

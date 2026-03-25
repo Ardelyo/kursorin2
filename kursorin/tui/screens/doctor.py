@@ -73,30 +73,37 @@ class DoctorScreen(Container):
         log_panel.update("")
         status_panel.update("")
         
-        state = {"total": 0, "passed": 0, "fixes": []}
+        class DiagResults:
+            total = 0
+            passed = 0
+            fixes = []
+            log = ""
+
+        results = DiagResults()
 
         def add_log(msg: str, log_type: str = "info"):
-            state["total"] += 1
+            results.total += 1
             icon = "✅" if log_type == "pass" else "❌" if log_type == "fail" else "🔵"
             color = "#22c55e" if log_type == "pass" else "#ef4444" if log_type == "fail" else "#3b82f6"
             
             if log_type == "pass":
-                state["passed"] += 1
+                results.passed += 1
             
-            log_panel.update(str(log_panel.renderable) + f"[{color}]{icon} {msg}[/]\n")
-            status_panel.update(f"Progress: {state['passed']}/{state['total']} checks passed")
+            results.log += f"[{color}]{icon} {msg}[/]\n"
+            log_panel.update(results.log)
+            status_panel.update(f"Progress: {results.passed}/{results.total} checks passed")
 
         async def check(name: str, test_fn, fix_msg: str, step: int):
             try:
                 result = test_fn()
                 if result:
-                    add_log(name, type="pass")
+                    add_log(name, log_type="pass")
                 else:
-                    add_log(name, type="fail")
-                    state["fixes"].append(fix_msg)
+                    add_log(name, log_type="fail")
+                    results.fixes.append(fix_msg)
             except Exception as e:
-                add_log(f"{name} ([#64748b]{e}[/])", type="fail")
-                state["fixes"].append(fix_msg)
+                add_log(f"{name} ([#64748b]{e}[/])", log_type="fail")
+                results.fixes.append(fix_msg)
             progress.update(progress=step)
 
         # 1. OS
@@ -184,16 +191,16 @@ class DoctorScreen(Container):
         )
 
         # Final status
-        if state["passed"] == state["total"]:
+        if results.passed == results.total:
             status_panel.update("[bold #22c55e]PASS: System is healthy![/]")
             summary_widget.update(
-                f"\n[bold #22c55e]✓ All {state['total']} checks passed.[/]\n"
+                f"\n[bold #22c55e]✓ All {results.total} checks passed.[/]\n"
                 "[#64748b]Your system is ready to run KURSORIN.[/]"
             )
         else:
-            status_panel.update(f"[bold #ef4444]FAIL: {state['total'] - state['passed']} issues found[/]")
-            fix_text = "\n".join(f"  • {m}" for m in state["fixes"])
+            status_panel.update(f"[bold #ef4444]FAIL: {results.total - results.passed} issues found[/]")
+            fix_text = "\n".join(f"  • {m}" for m in results.fixes)
             summary_widget.update(
-                f"\n[bold #ef4444]⚠ {state['passed']}/{state['total']} checks passed.[/]\n\n"
+                f"\n[bold #ef4444]⚠ {results.passed}/{results.total} checks passed.[/]\n\n"
                 f"[bold]Recommended fixes:[/]\n{fix_text}"
             )

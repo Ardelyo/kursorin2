@@ -453,7 +453,7 @@ def load_config(
     # Example: KURSORIN_TRACKING__HEAD_ENABLED=false
     for key, value in os.environ.items():
         if key.startswith(env_prefix):
-            config_key = key[len(env_prefix):].lower()
+            config_key = key.replace(env_prefix, "", 1).lower()
             # Handle nested keys (using __ as separator)
             # Implementation would set nested values
             pass

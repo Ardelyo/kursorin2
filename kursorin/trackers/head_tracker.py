@@ -124,20 +124,6 @@ class HeadTracker(BaseTracker):
         raw_x = max(-1.0, min(1.0, yaw / range_x))
         raw_y = max(-1.0, min(1.0, pitch / range_y))
         
-        # Apply non-linear curve (signed quadratic: x * abs(x)) for better precise control
-        scaled_x = raw_x * abs(raw_x)
-        scaled_y = raw_y * abs(raw_y)
-        
-        # Normalize to [0, 1] and apply sensitivity
-        norm_x = 0.5 + (scaled_x / 2.0) * self.config.tracking.head_sensitivity_x
-        norm_y = 0.5 + (scaled_y / 2.0) * self.config.tracking.head_sensitivity_y
-        
-        # Clamp final screen coordinates
-        norm_x = max(0.0, min(1.0, norm_x))
-        norm_y = max(0.0, min(1.0, norm_y))
-        
-        return TrackerResult(
-            valid=True,
 import numpy as np
 import time
 import cv2
@@ -158,7 +144,7 @@ class HeadTracker(BaseTracker):
     Estimates head pose (pitch, yaw, roll) from face landmarks.
     """
     
-    def __init__(self(self, config: KursorinConfig):
+    def __init__(self, config: KursorinConfig):
         super().__init__(config)
         
         # Legacy FaceMesh is no longer used, we consume shared results from FaceLandmarker
@@ -290,6 +276,4 @@ class HeadTracker(BaseTracker):
     
     def close(self) -> None:
         """Release resources."""
-        fl = self.face_landmarker
-        if fl is not None:
-            fl.close()
+        pass
