@@ -51,6 +51,7 @@ Screen {
 
 #logo-subtitle {
     text-align: center;
+    width: 100%;
     height: 1;
     margin: 0 0 1 0;
 }
@@ -60,8 +61,8 @@ Screen {
 #cmd-input {
     width: 80%;
     max-width: 80;
-    height: 3;
     margin: 0;
+    height: 3;
     background: #0f1729;
     color: #e2e8f0;
     border: tall #1e3a5f;
@@ -77,6 +78,7 @@ Screen {
 
 #hint-chips {
     text-align: center;
+    width: 100%;
     height: 1;
     margin: 1 0 0 0;
 }

@@ -134,33 +134,37 @@ class KursorinTUI(App):
         with VerticalScroll(id="main-scroll"):
 
             # Logo
-            yield Static(LOGO_ART, id="logo-art")
-            yield Static(
-                f"[#64748b]{t('cli.subtitle')}[/]",
-                id="logo-subtitle"
-            )
-
+            with Center():
+                yield Static(LOGO_ART, id="logo-art")
+            with Center():
+                yield Static(
+                    f"[#64748b]{t('cli.subtitle')}[/]",
+                    id="logo-subtitle"
+                )
+            
             # Command input
             yield Static("", classes="spacer-sm")
-            yield Input(
-                placeholder=f"  {t('cli.quick_ref')}:  start · settings · doctor · update · lang · quit",
-                id="cmd-input"
-            )
+            with Center():
+                yield Input(
+                    placeholder=f"  {t('cli.quick_ref')}:  start · settings · doctor · update · lang · quit",
+                    id="cmd-input"
+                )
 
             # Hint chips
-            yield Static(
-                "[#1e3a5f]─── [/]"
-                "[#3b82f6]start[/] [#475569]·[/] "
-                "[#3b82f6]settings[/] [#475569]·[/] "
-                "[#3b82f6]doctor[/] [#475569]·[/] "
-                "[#3b82f6]update[/] [#475569]·[/] "
-                "[#3b82f6]calibrate[/] [#475569]·[/] "
-                "[#3b82f6]gui[/] [#475569]·[/] "
-                "[#3b82f6]lang[/] [#475569]·[/] "
-                "[#3b82f6]quit[/]"
-                " [#1e3a5f]───[/]",
-                id="hint-chips"
-            )
+            with Center():
+                yield Static(
+                    "[#1e3a5f]─── [/]"
+                    "[#3b82f6]start[/] [#475569]·[/] "
+                    "[#3b82f6]settings[/] [#475569]·[/] "
+                    "[#3b82f6]doctor[/] [#475569]·[/] "
+                    "[#3b82f6]update[/] [#475569]·[/] "
+                    "[#3b82f6]calibrate[/] [#475569]·[/] "
+                    "[#3b82f6]gui[/] [#475569]·[/] "
+                    "[#3b82f6]lang[/] [#475569]·[/] "
+                    "[#3b82f6]quit[/]"
+                    " [#1e3a5f]───[/]",
+                    id="hint-chips"
+                )
 
             yield Static("", classes="spacer-sm")
 
