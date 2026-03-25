@@ -21,7 +21,7 @@
 [![OpenCV](https://img.shields.io/badge/opencv-4.x-red.svg?style=flat-square)](https://opencv.org/)
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg?style=flat-square)](#supported-platforms)
 
-[Technical Report](docs/KURSORIN_Technical_Report.pdf) | [Quick Start](#quick-start) | [Architecture](#architecture) | [Benchmarks](#benchmarks) | [Contributing](#contributing)
+[Architecture Guide](docs/architecture_guide.md) | [Technician Guide](docs/technician_guide.md) | [Status & Reports](docs/status_report.md) | [Quick Start](#quick-start) | [Benchmarks](#benchmarks)
 
 </div>
 
