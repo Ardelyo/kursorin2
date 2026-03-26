@@ -230,30 +230,18 @@ class KursorinEngine:
                     self._hand_tracker = HandTracker(self.config)
                     logger.info("Hand tracker initialized")
                 
-                # Initialize fusion
+                # Initialize fusion and smoother
                 self._fusion = FusionModule(self.config)
-                logger.info("Fusion module initialized")
-                
-                # Initialize smoother
                 self._smoother = CursorSmoother(self.config)
-                logger.info("Cursor smoother initialized")
                 
-                # Initialize cursor controller
+                # Initialize controllers and detectors
                 self._cursor_controller = CursorController(self.config)
-                logger.info("Cursor controller initialized")
-                
-                # Initialize click detector
                 self._click_detector = ClickDetector(self.config)
-                logger.info("Click detector initialized")
-                
-                # Initialize performance monitor
                 self._performance_monitor = PerformanceMonitor()
-                logger.info("Performance monitor initialized")
                 
-                # Initialize calibration model
+                # Initialize calibration
                 self._calibration_model = CalibrationModel()
                 self.load_calibration()
-                logger.info("Calibration model initialized")
                 
                 self.state = TrackingState.IDLE
                 logger.info("KURSORIN components initialized successfully")

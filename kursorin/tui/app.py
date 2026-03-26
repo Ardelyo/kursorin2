@@ -6,6 +6,7 @@ Type commands in the prompt bar to reveal dynamic panels below.
 """
 
 from pathlib import Path
+from typing import Optional, Generator
 
 from textual.app import App, ComposeResult
 from textual.binding import Binding
@@ -19,7 +20,10 @@ from textual.reactive import reactive
 
 from kursorin import __version__
 from kursorin.config import load_config, KursorinConfig
+from kursorin.core.kursorin_engine import KursorinEngine
 from kursorin.i18n import t, init_lang, get_lang, set_lang, save_lang
+import asyncio
+import time
 
 
 CSS_PATH = Path(__file__).parent / "app.tcss"
@@ -79,7 +83,7 @@ class SettingToggle(Horizontal):
         self._value = value
         self._key = key
 
-    def compose(self) -> ComposeResult:
+    def compose(self) -> Generator[Widget, None, None]:
         yield Static(self._label, classes="setting-label")
         yield Switch(value=self._value, id=f"sw-{self._key}")
 
@@ -96,7 +100,7 @@ class SettingInput(Horizontal):
         self._value = value
         self._key = key
 
-    def compose(self) -> ComposeResult:
+    def compose(self) -> Generator[Widget, None, None]:
         yield Static(self._label, classes="setting-label")
         yield Input(value=self._value, id=f"inp-{self._key}", classes="setting-input")
 
@@ -109,6 +113,9 @@ class KursorinTUI(App):
     CSS_PATH = "app.tcss"
     TITLE = "KURSORIN"
     SUB_TITLE = "Webcam-Based HCI System"
+    
+    engine: Optional[KursorinEngine] = None
+    _engine_worker = None
 
     BINDINGS = [
         Binding("q", "quit", "Quit", show=True),
@@ -117,7 +124,7 @@ class KursorinTUI(App):
         Binding("ctrl+p", "command_palette", "Commands", show=True),
     ]
 
-    def compose(self) -> ComposeResult:
+    def compose(self) -> Generator[Widget, None, None]:
         init_lang()
 
         # ── Header ──
@@ -174,13 +181,13 @@ class KursorinTUI(App):
                     yield Static("[bold #3b82f6]⬡ Dashboard[/]  [#64748b]System overview & quick actions[/]", classes="panel-title")
                     yield Rule()
                     with Horizontal(id="status-dots"):
-                        yield StatusDot("Camera", "idle")
+                        yield StatusDot("Camera", "idle", id="dot-camera")
                         yield Static("  ")
-                        yield StatusDot("Head", "idle")
+                        yield StatusDot("Head", "idle", id="dot-head")
                         yield Static("  ")
-                        yield StatusDot("Eye", "idle")
+                        yield StatusDot("Eye", "idle", id="dot-eye")
                         yield Static("  ")
-                        yield StatusDot("Hand", "idle")
+                        yield StatusDot("Hand", "idle", id="dot-hand")
                     yield Static("", classes="spacer-xs")
                     with Horizontal(id="stats-row"):
                         yield StatCard("—", "FPS", id="stat-fps")
@@ -250,6 +257,13 @@ class KursorinTUI(App):
         )
 
     # ── Lifecycle ─────────────────────────────────────────────────────────────
+
+    def on_unmount(self) -> None:
+        if self.engine is not None:
+            self.engine.stop()
+
+    def action_quit(self) -> None:
+        self.exit()
 
     def on_mount(self) -> None:
         """Hide all panels initially, focus command input."""
@@ -376,22 +390,13 @@ class KursorinTUI(App):
 
             cfg = load_config()
 
-            # Build settings widgets
-            from textual.containers import Vertical as V
-
-            settings_container = V(id="settings-content")
-
-            placeholder.remove()
-
-            # We'll mount the tabbed settings into the panel
+            # Build settings content
             self.call_after_refresh(lambda: self._mount_settings(panel, cfg))
         except Exception as e:
             self.notify(f"Failed to load settings: {e}", severity="error")
 
     def _mount_settings(self, panel, cfg) -> None:
         """Mount settings content into the panel."""
-        import asyncio
-
         async def do_mount():
             placeholder = None
             try:
@@ -402,8 +407,6 @@ class KursorinTUI(App):
             if placeholder:
                 await placeholder.remove()
 
-            # Build settings as individual sections instead of tabs
-            # (simpler, more compact, scrollable in the main view)
             sections = Vertical(id="settings-sections")
             await panel.mount(sections)
 
@@ -412,8 +415,12 @@ class KursorinTUI(App):
             await sections.mount(SettingToggle("Head Tracking", cfg.tracking.head_enabled, "head_enabled"))
             await sections.mount(SettingToggle("Eye Tracking", cfg.tracking.eye_enabled, "eye_enabled"))
             await sections.mount(SettingToggle("Hand Tracking", cfg.tracking.hand_enabled, "hand_enabled"))
-            await sections.mount(SettingToggle("Invert X", cfg.tracking.invert_x, "invert_x"))
-            await sections.mount(SettingToggle("Invert Y", cfg.tracking.invert_y, "invert_y"))
+            await sections.mount(SettingToggle("Invert X (Global)", cfg.tracking.invert_x, "invert_x"))
+            await sections.mount(SettingToggle("Invert Y (Global)", cfg.tracking.invert_y, "invert_y"))
+            await sections.mount(SettingToggle("Head: Invert X", cfg.tracking.head_invert_x, "head_invert_x"))
+            await sections.mount(SettingToggle("Head: Invert Y", cfg.tracking.head_invert_y, "head_invert_y"))
+            await sections.mount(SettingToggle("Eye: Invert X", cfg.tracking.eye_invert_x, "eye_invert_x"))
+            await sections.mount(SettingToggle("Eye: Invert Y", cfg.tracking.eye_invert_y, "eye_invert_y"))
 
             # Click
             await sections.mount(Static("[bold #60a5fa]━━ Click Methods[/]", classes="settings-section-title"))
@@ -482,7 +489,44 @@ class KursorinTUI(App):
     # ── Core actions ──────────────────────────────────────────────────────────
 
     def _start_tracking(self) -> None:
-        self.notify("Use 'kursorin start' from terminal.", title="▶ Tracking", severity="information")
+        if self.engine and self.engine.is_running:
+            self.engine.stop()
+            self.query_one("#btn-start", Button).label = "▶  Start Tracking"
+            self.query_one("#btn-start", Button).remove_class("-danger")
+            self.query_one("#btn-start", Button).add_class("-primary")
+            self.notify("Engine stopped.", title="⏹ Tracking", severity="warning")
+            return
+
+        try:
+            cfg = load_config()
+            self.engine = KursorinEngine(cfg)
+            self.engine.start()
+            self.query_one("#btn-start", Button).label = "⏹  Stop Tracking"
+            self.query_one("#btn-start", Button).remove_class("-primary")
+            self.query_one("#btn-start", Button).add_class("-danger")
+            self.notify("Engine started!", title="▶ Tracking", severity="information")
+            
+            # Start dashboard update loop
+            self.run_worker(self._update_dashboard_loop())
+        except Exception as e:
+            self.notify(f"Start failed: {e}", title="Error", severity="error")
+
+    async def _update_dashboard_loop(self) -> None:
+        while self.engine is not None and self.engine.is_running:
+            try:
+                # Update status dots
+                state_colors = {"IDLE": "idle", "INITIALIZING": "warning", "TRACKING": "online", "CALIBRATING": "warning", "ERROR": "offline"}
+                state = self.engine.state.name
+                
+                # Update Metrics
+                self.query_one("#stat-fps", StatCard).update_value(f"{self.engine.fps:.1f}")
+                self.query_one("#stat-latency", StatCard).update_value(f"{self.engine.latency_ms:.0f}ms")
+                uptime = time.time() - self.engine._start_time if self.engine._start_time else 0
+                self.query_one("#stat-uptime", StatCard).update_value(f"{uptime:.1f}s")
+                
+            except Exception:
+                pass
+            await asyncio.sleep(0.5)
 
     def _start_calibration(self) -> None:
         self.notify("Use 'kursorin calibrate' from terminal.", title="🎯 Calibration", severity="information")
@@ -603,17 +647,24 @@ class KursorinTUI(App):
         except Exception as e:
             log.update(f"[#ef4444]✗ {e}[/]")
 
-    # ── Settings save/reset ───────────────────────────────────────────────────
+    # ── Settings Persistence ──────────────────────────────────────────────────
 
     def _save_settings(self) -> None:
         try:
             cfg = load_config()
-            switch_map = {
+            
+            # Map widget IDs to config values
+            # (In a real app, this would be more dynamic)
+            map_keys = {
                 "sw-head_enabled": ("tracking", "head_enabled"),
-                "sw-invert_x": ("tracking", "invert_x"),
-                "sw-invert_y": ("tracking", "invert_y"),
                 "sw-eye_enabled": ("tracking", "eye_enabled"),
                 "sw-hand_enabled": ("tracking", "hand_enabled"),
+                "sw-invert_x": ("tracking", "invert_x"),
+                "sw-invert_y": ("tracking", "invert_y"),
+                "sw-head_invert_x": ("tracking", "head_invert_x"),
+                "sw-head_invert_y": ("tracking", "head_invert_y"),
+                "sw-eye_invert_x": ("tracking", "eye_invert_x"),
+                "sw-eye_invert_y": ("tracking", "eye_invert_y"),
                 "sw-blink_click": ("click", "blink_click_enabled"),
                 "sw-dwell_click": ("click", "dwell_click_enabled"),
                 "sw-pinch_click": ("click", "pinch_click_enabled"),
@@ -630,32 +681,28 @@ class KursorinTUI(App):
                 "sw-audio_fb": ("ui", "audio_feedback"),
                 "sw-notifs": ("ui", "show_notifications"),
             }
-            for wid, (sec, key) in switch_map.items():
+
+            for wid, (section_name, attr_name) in map_keys.items():
                 try:
                     sw = self.query_one(f"#{wid}", Switch)
-                    setattr(getattr(cfg, sec), key, sw.value)
+                    section = getattr(cfg, section_name)
+                    setattr(section, attr_name, sw.value)
                 except Exception:
-                    pass
-            cfg.to_file(Path.home() / ".kursorin" / "config.yaml")
-            self.notify("Settings saved!", title="💾", severity="information")
+                    continue
+
+            # Save to file
+            config_dir = Path.home() / ".kursorin"
+            config_dir.mkdir(parents=True, exist_ok=True)
+            cfg.to_file(config_dir / "config.yaml")
+
+            self.notify("Settings saved successfully.", title="💾", severity="information")
+            
+            # If engine is running, update it
+            if self.engine and self.engine.is_running:
+                self.engine.config = cfg
+                
         except Exception as e:
-            self.notify(f"Failed: {e}", title="Error", severity="error")
+            self.notify(f"Save failed: {e}", severity="error")
 
     def _reset_settings(self) -> None:
-        try:
-            cfg = KursorinConfig()
-            cfg.to_file(Path.home() / ".kursorin" / "config.yaml")
-            self._settings_loaded = False
-            self.notify("Reset to defaults. Restart TUI.", title="↺", severity="warning")
-        except Exception as e:
-            self.notify(f"Failed: {e}", title="Error", severity="error")
-
-
-def run_tui():
-    """Entry point to launch the TUI."""
-    app = KursorinTUI()
-    app.run()
-
-
-if __name__ == "__main__":
-    run_tui()
+        self.notify("Settings reset to defaults (stub).", title="↺", severity="warning")

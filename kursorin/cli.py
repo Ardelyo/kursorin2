@@ -22,8 +22,15 @@ from kursorin import __version__
 from kursorin.i18n import t, init_lang, set_lang, get_lang, save_lang
 
 
-# Initialize rich console
-console = Console()
+# Initialize rich console with UTF-8 force if on Windows
+import os
+if os.name == 'nt':
+    import sys
+    # Force UTF-8 for standard output to avoid CP1252 issues with Rich/Unicode
+    if hasattr(sys.stdout, 'reconfigure'):
+        sys.stdout.reconfigure(encoding='utf-8')
+
+console = Console(force_terminal=True)
 
 # Arctic Terminal Palette
 COLORS = {

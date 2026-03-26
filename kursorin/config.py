@@ -14,7 +14,12 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import yaml
-from pydantic import BaseModel, Field, validator
+try:
+    from pydantic import BaseModel, Field, field_validator
+    HAS_V2 = True
+except ImportError:
+    from pydantic import BaseModel, Field, validator as field_validator
+    HAS_V2 = False
 
 
 class TrackingConfig(BaseModel):
@@ -31,9 +36,17 @@ class TrackingConfig(BaseModel):
     head_dead_zone: float = Field(default=0.02, ge=0.0, le=0.1)
     head_smoothing: float = Field(default=0.8, ge=0.0, le=0.99)
     
-    # Mirroring / Inversion
+    # Mirroring / Inversion (Global)
     invert_x: bool = False
     invert_y: bool = False
+    
+    # Modality-specific inversion
+    head_invert_x: bool = False
+    head_invert_y: bool = False
+    eye_invert_x: bool = False
+    eye_invert_y: bool = False
+    hand_invert_x: bool = False
+    hand_invert_y: bool = False
     
     # Eye tracking
     eye_enabled: bool = True
@@ -412,10 +425,15 @@ class KursorinConfig(BaseModel):
         merged = deep_merge(self_dict, other_dict)
         return KursorinConfig(**merged)
     
-    model_config = {
-        "validate_assignment": True,
-        "extra": "forbid"
-    }
+    if HAS_V2:
+        model_config = {
+            "validate_assignment": True,
+            "extra": "forbid"
+        }
+    else:
+        class Config:
+            validate_assignment = True
+            extra = "forbid"
 
 
 # Default configuration instance

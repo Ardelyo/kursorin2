@@ -35,31 +35,44 @@ class Overlay:
         
         # Draw Head Tracking
         if result.head_result and result.head_result.valid and self.config.ui.show_tracking_points:
-            # Draw nose tip or head pose indicator
-            # Simplified: Draw a circle at the nose tip if available
-            # Ideally we project 3D axes
-            pass
+            # Draw nose tip as a small circle in camera frame
+            face_landmarks = result.head_result.landmarks
+            if face_landmarks:
+                # Nose tip is at index 4 in Mediapipe Face Mesh
+                nose_tip = face_landmarks[4]
+                nx, ny = int(nose_tip.x * w), int(nose_tip.y * h)
+                cv2.circle(vis_frame, (nx, ny), 3, Color.HEAD_COLOR, -1)
             
         # Draw Eye Tracking
         if result.eye_result and result.eye_result.valid and self.config.ui.show_tracking_points:
-            # Draw gaze point
-            gaze_x = result.eye_result.metadata.get("gaze_x", 0.5)
-            gaze_y = result.eye_result.metadata.get("gaze_y", 0.5)
-            
-            # Map to screen (this is gaze on screen, but we want to visualize on camera frame)
-            # Visualizing gaze on camera frame is tricky without calibration mapping back to camera space
-            # So we might just draw iris landmarks
-            pass
+            face_landmarks = result.eye_result.landmarks
+            if face_landmarks:
+                # Draw Iris landmarks
+                from kursorin.constants import LEFT_IRIS_LANDMARKS, RIGHT_IRIS_LANDMARKS
+                for idx in LEFT_IRIS_LANDMARKS + RIGHT_IRIS_LANDMARKS:
+                    lm = face_landmarks[idx]
+                    ix, iy = int(lm.x * w), int(lm.y * h)
+                    cv2.circle(vis_frame, (ix, iy), 1, Color.EYE_COLOR, -1)
             
         # Draw Hand Tracking
         if result.hand_result and result.hand_result.valid and self.config.ui.show_hand_skeleton:
             # Draw hand landmarks
-            # MediaPipe has drawing utils, but we can do simple drawing here
             landmarks = result.hand_result.landmarks
             if landmarks:
-                # Draw index tip
-                # We need to convert normalized landmarks to pixel coordinates
-                pass
+                # Draw index tip and thumb tip
+                from kursorin.constants import HandLandmark
+                for idx in [HandLandmark.INDEX_TIP, HandLandmark.THUMB_TIP]:
+                    lm = landmarks[idx]
+                    hx, hy = int(lm.x * w), int(lm.y * h)
+                    cv2.circle(vis_frame, (hx, hy), 4, Color.HAND_COLOR, -1)
+                
+                # Draw simple bones (Thumb-Index)
+                thumb = landmarks[HandLandmark.THUMB_TIP]
+                index = landmarks[HandLandmark.INDEX_TIP]
+                cv2.line(vis_frame, 
+                         (int(thumb.x * w), int(thumb.y * h)), 
+                         (int(index.x * w), int(index.y * h)), 
+                         Color.HAND_COLOR, 1)
                 
         # Draw Cursor Position (Fused)
         if result.cursor_position:

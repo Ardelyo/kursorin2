@@ -26,10 +26,6 @@ class HandTracker(BaseTracker):
             "assets", "models", "hand_landmarker.task"
         )
         
-        # Note: If hand_landmarker.task is missing, we'll need to download it 
-        # but for now we'll assume it's either present or hand tracking is disabled.
-        # kursorin_engine usually manages model availability.
-        
         if os.path.exists(model_path):
             base_options = mp_python.BaseOptions(model_asset_path=model_path)
             options = mp_vision.HandLandmarkerOptions(
@@ -89,9 +85,18 @@ class HandTracker(BaseTracker):
         # Recognize gesture
         gesture = self._recognize_gesture(landmarks, pinch_dist)
         
+        # Apply modality-specific and global inversion
+        pos_x = index_tip.x
+        pos_y = index_tip.y
+        
+        if self.config.tracking.invert_x ^ self.config.tracking.hand_invert_x:
+            pos_x = 1.0 - pos_x
+        if self.config.tracking.invert_y ^ self.config.tracking.hand_invert_y:
+            pos_y = 1.0 - pos_y
+            
         return TrackerResult(
             valid=True,
-            position=np.array([index_tip.x, index_tip.y]),
+            position=np.array([pos_x, pos_y]),
             confidence=1.0, 
             landmarks=landmarks,
             timestamp=time.time(),

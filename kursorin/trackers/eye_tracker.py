@@ -51,8 +51,8 @@ class EyeTracker(BaseTracker):
         h, w, _ = frame.shape
         
         # Calculate Eye Aspect Ratio (EAR) for blink detection
-        left_ear = self._calculate_ear(face_landmarks, LEFT_EYE_EAR_LANDMARKS, w, h)
-        right_ear = self._calculate_ear(face_landmarks, RIGHT_EYE_EAR_LANDMARKS, w, h)
+        left_ear = self._calculate_ear(face_landmarks)
+        right_ear = self._calculate_ear(face_landmarks, is_right=True)
         avg_ear = (left_ear + right_ear) / 2.0
         
         # Gaze estimation (simplified using iris center relative to eye corners)
@@ -67,8 +67,7 @@ class EyeTracker(BaseTracker):
         avg_gaze_x = (left_gaze[0] + right_gaze[0]) / 2.0
         avg_gaze_y = (left_gaze[1] + right_gaze[1]) / 2.0
         
-        # Apple EMA Smoothing to reduce jitter
-        # Optional: pull alpha from config if it exists, otherwise default to 0.15 for smooth eye movement
+        # Apply EMA Smoothing to reduce jitter
         alpha = 0.15
         if hasattr(self.config, 'smoothing') and hasattr(self.config.smoothing, 'eye_ema_alpha'):
             alpha = self.config.smoothing.eye_ema_alpha
@@ -87,8 +86,17 @@ class EyeTracker(BaseTracker):
         range_x = self.config.tracking.eye_active_range_x
         range_y = self.config.tracking.eye_active_range_y
         
-        norm_x = 0.5 + (avg_gaze_x - 0.5) * (1.0 / range_x)
-        norm_y = 0.5 + (avg_gaze_y - 0.5) * (1.0 / range_y)
+        # Apply modality-specific and global inversion
+        rel_x = (avg_gaze_x - 0.5)
+        rel_y = (avg_gaze_y - 0.5)
+        
+        if self.config.tracking.invert_x ^ self.config.tracking.eye_invert_x:
+            rel_x = -rel_x
+        if self.config.tracking.invert_y ^ self.config.tracking.eye_invert_y:
+            rel_y = -rel_y
+            
+        norm_x = 0.5 + rel_x * (1.0 / range_x)
+        norm_y = 0.5 + rel_y * (1.0 / range_y)
         
         norm_x = max(0.0, min(1.0, norm_x))
         norm_y = max(0.0, min(1.0, norm_y))
@@ -108,18 +116,21 @@ class EyeTracker(BaseTracker):
             }
         )
 
-    def _calculate_ear(self, landmarks, indices, w, h):
+    def _calculate_ear(self, landmarks, is_right=False):
         """Calculate Eye Aspect Ratio."""
-        # Euclidean distance function
-        def dist(p1, p2):
+        indices = RIGHT_EYE_EAR_LANDMARKS if is_right else LEFT_EYE_EAR_LANDMARKS
+        
+        def dist(i, j):
+            p1 = landmarks[indices[i]]
+            p2 = landmarks[indices[j]]
             return np.sqrt((p1.x - p2.x)**2 + (p1.y - p2.y)**2)
             
         # Vertical distances
-        v1 = dist(landmarks[indices[1]], landmarks[indices[5]])
-        v2 = dist(landmarks[indices[2]], landmarks[indices[4]])
+        v1 = dist(1, 5)
+        v2 = dist(2, 4)
         
         # Horizontal distance
-        h_dist = dist(landmarks[indices[0]], landmarks[indices[3]])
+        h_dist = dist(0, 3)
         
         if h_dist == 0:
             return 0.0
@@ -135,19 +146,18 @@ class EyeTracker(BaseTracker):
         iris_center = landmarks[iris_indices[0]]
         
         # Eye corners
-        inner = landmarks[eye_indices[3]] # Inner corner (approx)
-        outer = landmarks[eye_indices[0]] # Outer corner (approx)
+        inner = landmarks[eye_indices[3]] # Inner corner
+        outer = landmarks[eye_indices[0]] # Outer corner
         
         # Eye top/bottom
-        top = landmarks[eye_indices[1]] # Top (approx)
-        bottom = landmarks[eye_indices[4]] # Bottom (approx)
+        top = landmarks[eye_indices[1]]
+        bottom = landmarks[eye_indices[4]]
         
         # Horizontal ratio
         eye_width = abs(inner.x - outer.x)
         if eye_width == 0:
             x_ratio = 0.5
         else:
-            # Distance from outer corner
             dist_x = abs(iris_center.x - outer.x)
             x_ratio = dist_x / eye_width
             
