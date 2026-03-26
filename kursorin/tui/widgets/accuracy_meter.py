@@ -1,7 +1,7 @@
 """
 KURSORIN TUI — Accuracy Meter Widget
 
-Live tracking accuracy bar for Head, Eye, and Hand modalities.
+Ocean Blue gradient accuracy bar.
 """
 
 from textual.widget import Widget
@@ -9,7 +9,7 @@ from textual.reactive import reactive
 
 
 class AccuracyMeter(Widget):
-    """A labeled accuracy bar showing 0–100%."""
+    """A labeled accuracy bar — Ocean Blue gradient."""
 
     value: reactive[float] = reactive(0.0)
     label: reactive[str] = reactive("Modality")
@@ -27,26 +27,25 @@ class AccuracyMeter(Widget):
         v = self.value
         pct = int(v)
 
-        # Color gradient: red → amber → teal based on value
+        # Blue gradient: deep → ocean → bright
         if v < 40:
-            bar_color = "#e84040"
-            txt_color = "#e84040"
+            bar_color = "#003060"
+            txt_color = "#005fa3"
         elif v < 70:
-            bar_color = "#f0a030"
-            txt_color = "#f0a030"
+            bar_color = "#005fa3"
+            txt_color = "#00a3ff"
         else:
-            bar_color = "#0dccb0"
-            txt_color = "#0dccb0"
+            bar_color = "#00a3ff"
+            txt_color = "#80d0ff"
 
-        # Bar
         bar_width = 30
         filled = int(bar_width * v / 100)
         empty = bar_width - filled
-        bar = f"[{bar_color}]{'█' * filled}[/][#1a2030]{'░' * empty}[/]"
+        bar = f"[{bar_color}]{'█' * filled}[/][#0a1e3a]{'░' * empty}[/]"
 
         if pct == 0:
-            pct_str = "[#384050]—[/]"
+            pct_str = "[#4a607a]—[/]"
         else:
             pct_str = f"[{txt_color} bold]{pct}%[/]"
 
-        return f"[#8090a0]{self.label}[/]\n{bar} {pct_str}"
+        return f"[#8098b0]{self.label}[/]\n{bar} {pct_str}"

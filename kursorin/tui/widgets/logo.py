@@ -1,11 +1,10 @@
 """
 KURSORIN TUI — Logo Widget
 
-Animated ASCII logo with color cycling for the command-center.
+Static Ocean Blue ASCII logo.
 """
 
 from textual.widget import Widget
-from textual.reactive import reactive
 
 
 KURSORIN_LOGO = """\
@@ -16,19 +15,9 @@ KURSORIN_LOGO = """\
 ██║  ██╗╚██████╔╝██║  ██║███████║╚██████╔╝██║  ██║██║██║ ╚████║
 ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝ ╚═════╝ ╚═╝  ╚═╝╚═╝╚═╝  ╚═══╝"""
 
-# Color palettes for animation cycling
-_PALETTES = [
-    # Teal phase
-    ("#0dccb0", "#0aa88e", "#077060", "#0d2922"),
-    # Amber phase
-    ("#f0a030", "#c07818", "#8a5008", "#2a1800"),
-    # Bright phase
-    ("#5eeada", "#0dccb0", "#0aa88e", "#0d2922"),
-]
-
 
 class LogoWidget(Widget):
-    """Animated ASCII logo with teal/amber color cycling."""
+    """Static Ocean Blue ASCII logo — no animation."""
 
     DEFAULT_CSS = """
     LogoWidget {
@@ -38,20 +27,12 @@ class LogoWidget(Widget):
     }
     """
 
-    _phase: reactive[int] = reactive(0)
-
-    def on_mount(self) -> None:
-        self.set_interval(1.5, self._cycle_color)
-
-    def _cycle_color(self) -> None:
-        self._phase = (self._phase + 1) % len(_PALETTES)
-
     def render(self) -> str:
-        p = _PALETTES[self._phase]
         lines = KURSORIN_LOGO.split("\n")
-        colored_lines = []
+        colored = []
+        # Subtle gradient from bright to deeper blue, top to bottom
+        shades = ["#80d0ff", "#40b8ff", "#00a3ff", "#0090e0", "#0070b0", "#005fa3"]
         for i, line in enumerate(lines):
-            # Alternate colors across line groups
-            col_idx = min(i // 2, len(p) - 1)
-            colored_lines.append(f"[bold {p[col_idx]}]{line}[/]")
-        return "\n".join(colored_lines)
+            shade = shades[min(i, len(shades) - 1)]
+            colored.append(f"[bold {shade}]{line}[/]")
+        return "\n".join(colored)

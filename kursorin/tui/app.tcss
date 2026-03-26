@@ -1,32 +1,26 @@
 /* ═══════════════════════════════════════════════════════════════════════
-   KURSORIN TUI — Surveillance / Industrial Control Panel
-   Palette: Teal #0dccb0 · Amber #f0a030 · Crimson #e84040 · Near-black #08090d
+   KURSORIN TUI — Ocean Blue Minimalist
+   Palette: Primary #00a3ff · Deep #005fa3 · Accent #80d0ff
+   Background: #040810 · Surface: #0a1428 · Text: #c8d0d8
    ═══════════════════════════════════════════════════════════════════════ */
 
 /* ── Global ─────────────────────────────────────────────────────────────── */
 
 Screen {
-    background: #08090d;
+    background: #040810;
     color: #c8d0d8;
     overflow: hidden;
 }
 
-/* ── Header Bar ──────────────────────────────────────────────────────────── */
+/* ── Header ──────────────────────────────────────────────────────────────── */
 
 #header-bar {
     dock: top;
     height: 1;
-    background: #04050a;
-    color: #0dccb0;
+    background: #030608;
+    color: #00a3ff;
     content-align: left middle;
-    border-bottom: solid #0d2922;
-}
-
-#header-engine-state {
-    dock: right;
-    width: 22;
-    content-align: right middle;
-    color: #f0a030;
+    border-bottom: solid #0a1e3a;
 }
 
 /* ── Status Bar ──────────────────────────────────────────────────────────── */
@@ -34,10 +28,10 @@ Screen {
 #status-bar {
     dock: bottom;
     height: 1;
-    background: #04050a;
-    color: #384050;
+    background: #030608;
+    color: #4a607a;
     content-align: left middle;
-    border-top: solid #0d2922;
+    border-top: solid #0a1e3a;
 }
 
 /* ── Main Scroll ─────────────────────────────────────────────────────────── */
@@ -45,7 +39,7 @@ Screen {
 #main-scroll {
     width: 100%;
     height: 1fr;
-    padding: 0 3;
+    padding: 0 6;
 }
 
 /* ── Logo ────────────────────────────────────────────────────────────────── */
@@ -54,118 +48,72 @@ Screen {
     text-align: center;
     height: auto;
     width: 100%;
-    margin: 1 0 0 0;
+    margin: 2 0 0 0;
 }
 
 #logo-subtitle {
     text-align: center;
     width: 100%;
     height: 1;
-    margin: 0 0 0 0;
-    color: #384050;
+    margin: 0 0 1 0;
+    color: #4a607a;
 }
 
 /* ── Command Input ───────────────────────────────────────────────────────── */
 
 #cmd-input {
-    width: 70%;
-    max-width: 80;
-    margin: 1 0 0 0;
+    width: 60%;
+    max-width: 72;
+    margin: 1 0 2 0;
     height: 3;
-    background: #0a0d12;
+    background: #0a1428;
     color: #c8d0d8;
-    border: tall #0d2922;
-    padding: 0 1;
-    transition: border 300ms;
+    border: round #0a1e3a;
+    padding: 0 2;
+    transition: border 200ms;
 }
 
 #cmd-input:focus {
-    border: tall #0dccb0;
-    background: #06090f;
-}
-
-/* ── Hint Chips ──────────────────────────────────────────────────────────── */
-
-#hint-chips {
-    text-align: center;
-    width: 100%;
-    height: 1;
-    margin: 0 0 1 0;
-    color: #384050;
+    border: round #00a3ff;
+    background: #081020;
 }
 
 /* ── Spacers ─────────────────────────────────────────────────────────────── */
 
 .spacer-xs { height: 1; }
 .spacer-sm { height: 2; }
-.spacer-lg { height: 4; }
+.spacer-lg { height: 3; }
 
-/* ── Tabbed Content ──────────────────────────────────────────────────────── */
+/* ── Section Panel ───────────────────────────────────────────────────────── */
 
-TabbedContent {
-    height: auto;
-    width: 100%;
-}
-
-TabbedContent > TabPane {
-    padding: 1 0;
-    height: auto;
-}
-
-Tabs {
-    background: #04050a;
-    border-bottom: solid #0d2922;
-    height: 3;
-    align: center middle;
-}
-
-Tab {
-    background: #0a0d12;
-    color: #384050;
-    padding: 0 2;
-    margin: 0 1;
-    border: tall #0d2922;
-    transition: background 200ms, color 200ms, border 200ms;
-}
-
-Tab:hover {
-    background: #0d1520;
-    color: #8ecfc8;
-    border: tall #0dccb0;
-}
-
-Tab.-active {
-    background: #0d2922;
-    color: #0dccb0;
-    border: tall #0dccb0;
-    text-style: bold;
-}
-
-/* ── Panel Wrapper ───────────────────────────────────────────────────────── */
-
-.panel {
-    background: #0a0d12;
-    border: round #0d2922;
-    padding: 1 2;
+.section-panel {
+    background: #0a1428;
+    border: round #0a1e3a;
+    padding: 2 4;
     margin: 1 0;
     height: auto;
     width: 100%;
-    transition: background 300ms;
+    transition: background 200ms;
 }
 
-.panel:hover {
-    background: #0c1018;
+.section-panel:hover {
+    background: #0c1830;
 }
 
-.panel-title {
-    color: #0dccb0;
+.section-title {
+    color: #00a3ff;
     text-style: bold;
-    margin: 0 0 0 0;
+    margin: 0 0 1 0;
+}
+
+.section-subtitle {
+    color: #4a607a;
+    margin: 0 0 1 0;
 }
 
 Rule {
-    color: #0d2922;
-    margin: 0 0 1 0;
+    color: #0a1e3a;
+    margin: 1 0;
 }
 
 /* ── Stat Cards ──────────────────────────────────────────────────────────── */
@@ -173,22 +121,21 @@ Rule {
 StatCard {
     height: 5;
     width: 1fr;
-    background: #070a0f;
-    border: round #0d2922;
+    background: #081020;
+    border: round #0a1e3a;
     padding: 1 2;
     margin: 0 1 0 0;
     content-align: center middle;
-    transition: border 250ms, background 250ms;
+    transition: border 200ms;
 }
 
 StatCard:hover {
-    border: round #0dccb0;
-    background: #0c1820;
+    border: round #005fa3;
 }
 
 #stats-row {
     height: auto;
-    margin: 0 0 1 0;
+    margin: 1 0;
 }
 
 /* ── Status Dots ─────────────────────────────────────────────────────────── */
@@ -196,12 +143,12 @@ StatCard:hover {
 StatusDot {
     height: 1;
     width: auto;
-    margin: 0 2 0 0;
+    margin: 0 3 0 0;
 }
 
 #status-dots {
     height: 1;
-    margin: 0 0 1 0;
+    margin: 1 0;
 }
 
 /* ── Action Buttons ──────────────────────────────────────────────────────── */
@@ -209,91 +156,100 @@ StatusDot {
 .action-btn {
     width: 100%;
     height: 3;
-    margin: 0 0 1 0;
-    background: #0a0d12;
-    color: #0dccb0;
+    margin: 1 0;
+    background: #0a1428;
+    color: #00a3ff;
     text-style: bold;
-    border: tall #0d2922;
-    transition: background 200ms, border 200ms, color 200ms;
+    border: round #0a1e3a;
+    transition: background 200ms, border 200ms;
 }
 
 .action-btn:hover {
-    background: #0c1820;
-    border: tall #0dccb0;
-    color: #5eeada;
+    background: #0c1e40;
+    border: round #00a3ff;
 }
 
 .action-btn:focus {
-    background: #0c1820;
-    border: tall #0dccb0;
+    border: round #00a3ff;
 }
 
 .action-btn.-primary {
-    background: #062a22;
-    color: #0dccb0;
-    border: tall #0dccb0;
+    background: #003060;
+    color: #80d0ff;
+    border: round #005fa3;
 }
 
 .action-btn.-primary:hover {
-    background: #0d3d30;
-    color: #5eeada;
-}
-
-.action-btn.-amber {
-    background: #1a1000;
-    color: #f0a030;
-    border: tall #5a3a00;
-}
-
-.action-btn.-amber:hover {
-    background: #221500;
-    border: tall #f0a030;
-    color: #f8c060;
+    background: #004080;
+    color: #b0e0ff;
+    border: round #00a3ff;
 }
 
 .action-btn.-danger {
-    background: #1a0a0a;
-    color: #e84040;
-    border: tall #5a1010;
+    background: #1a0a14;
+    color: #c06080;
+    border: round #3a1020;
 }
 
 .action-btn.-danger:hover {
-    background: #241010;
-    border: tall #e84040;
-    color: #f07070;
+    background: #201018;
+    border: round #c06080;
+}
+
+/* ── Buttons Row ─────────────────────────────────────────────────────────── */
+
+.btn-row {
+    height: auto;
+    margin: 1 0;
+}
+
+.btn-row Button {
+    width: 1fr;
+    margin: 0 1 0 0;
+}
+
+/* ── Collapsible ─────────────────────────────────────────────────────────── */
+
+Collapsible {
+    background: #0a1428;
+    border: round #0a1e3a;
+    margin: 1 0;
+    padding: 0;
+    height: auto;
+}
+
+Collapsible > CollapsibleTitle {
+    color: #00a3ff;
+    text-style: bold;
+    background: #081020;
+    padding: 1 2;
+}
+
+Collapsible > CollapsibleTitle:hover {
+    background: #0c1830;
+}
+
+Collapsible > Contents {
+    padding: 1 3;
+    height: auto;
 }
 
 /* ── Settings ────────────────────────────────────────────────────────────── */
 
-#settings-sections {
-    height: auto;
-}
-
-.settings-section-title {
-    color: #f0a030;
+.settings-group-title {
+    color: #80d0ff;
     text-style: bold;
     margin: 1 0 0 0;
-    padding: 0 0 0 0;
 }
 
 .setting-label {
     width: 1fr;
     content-align: left middle;
-    color: #8090a0;
+    color: #8098b0;
 }
 
 .setting-input {
     width: 20;
-}
-
-#settings-actions {
-    height: auto;
-    margin: 1 0 0 0;
-}
-
-#settings-actions Button {
-    width: 1fr;
-    margin: 0 1 0 0;
 }
 
 SettingToggle {
@@ -303,7 +259,7 @@ SettingToggle {
 }
 
 SettingToggle:hover {
-    background: #0c1018;
+    background: #0c1830;
 }
 
 SettingInput {
@@ -313,84 +269,78 @@ SettingInput {
 }
 
 SettingInput:hover {
-    background: #0c1018;
+    background: #0c1830;
+}
+
+#settings-actions {
+    height: auto;
+    margin: 1 0;
+}
+
+#settings-actions Button {
+    width: 1fr;
+    margin: 0 1 0 0;
 }
 
 /* ── Switches ────────────────────────────────────────────────────────────── */
 
 Switch {
-    background: #1a2030;
+    background: #1a2540;
 }
 
 Switch.-on {
-    background: #0dccb0;
+    background: #00a3ff;
 }
 
 /* ── Inputs ──────────────────────────────────────────────────────────────── */
 
 Input {
-    background: #070a0f;
+    background: #081020;
     color: #c8d0d8;
-    border: tall #0d2922;
-    transition: border 300ms;
+    border: round #0a1e3a;
+    transition: border 200ms;
 }
 
 Input:focus {
-    border: tall #0dccb0;
+    border: round #00a3ff;
 }
 
 /* ── Progress Bar ────────────────────────────────────────────────────────── */
 
 ProgressBar {
-    margin: 0 0 1 0;
+    margin: 1 0;
 }
 
 ProgressBar Bar {
-    color: #0dccb0;
-    background: #0d2022;
+    color: #00a3ff;
+    background: #0a1e3a;
 }
 
-/* ── Accuracy Panel ──────────────────────────────────────────────────────── */
-
-.accuracy-section-title {
-    color: #f0a030;
-    text-style: bold;
-    margin: 1 0 0 0;
-}
+/* ── Accuracy Meter ──────────────────────────────────────────────────────── */
 
 AccuracyMeter {
     height: 4;
     width: 100%;
-    background: #070a0f;
-    border: round #0d2922;
+    background: #081020;
+    border: round #0a1e3a;
     padding: 0 2;
     margin: 0 0 1 0;
-    transition: border 250ms;
+    transition: border 200ms;
 }
 
 AccuracyMeter:hover {
-    border: round #0dccb0;
-}
-
-.accuracy-grid {
-    height: auto;
-    margin: 0 0 1 0;
-}
-
-.accuracy-scores {
-    height: auto;
-    margin: 0 0 1 0;
+    border: round #005fa3;
 }
 
 /* ── Doctor ──────────────────────────────────────────────────────────────── */
 
 #doctor-log {
-    color: #8090a0;
+    color: #8098b0;
     min-height: 4;
-    margin: 0 0 1 0;
-    padding: 0 1;
-    border: round #0d2922;
-    background: #070a0f;
+    margin: 1 0;
+    padding: 1 2;
+    border: round #0a1e3a;
+    background: #081020;
 }
 
 #doctor-summary {
@@ -398,38 +348,38 @@ AccuracyMeter:hover {
     margin: 0;
 }
 
-/* ── Update Panel ────────────────────────────────────────────────────────── */
+/* ── Update Log ──────────────────────────────────────────────────────────── */
 
 #update-log {
-    color: #8090a0;
+    color: #8098b0;
     min-height: 3;
-    margin: 0 0 1 0;
-    padding: 0 1;
-    border: round #0d2922;
-    background: #070a0f;
+    margin: 1 0;
+    padding: 1 2;
+    border: round #0a1e3a;
+    background: #081020;
 }
 
 /* ── Footer ──────────────────────────────────────────────────────────────── */
 
 Footer {
-    background: #04050a;
-    color: #384050;
+    background: #030608;
+    color: #4a607a;
 }
 
 Footer > .footer--key {
-    color: #0dccb0;
+    color: #00a3ff;
     text-style: bold;
-    background: #062a22;
+    background: #003060;
 }
 
 Footer > .footer--description {
-    color: #384050;
+    color: #4a607a;
 }
 
-/* ── Notifications ───────────────────────────────────────────────────────── */
+/* ── Toast / Notification ────────────────────────────────────────────────── */
 
 Toast {
-    background: #0a1820;
-    border: round #0dccb0;
+    background: #0a1e3a;
+    border: round #005fa3;
     color: #c8d0d8;
 }

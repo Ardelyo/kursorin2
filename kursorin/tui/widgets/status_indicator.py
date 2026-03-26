@@ -1,18 +1,14 @@
 """
 KURSORIN TUI — Status Indicator Widget
 
-Animated status dot for system component states.
+Clean Ocean Blue status dot.
 """
 
 from textual.widget import Widget
-from textual.reactive import reactive
-
-
-_PULSE_FRAMES = ["●", "◉", "●", "○"]
 
 
 class StatusIndicator(Widget):
-    """A colored pulsing status dot with label."""
+    """A colored status dot with label — Ocean Blue theme."""
 
     DEFAULT_CSS = """
     StatusIndicator {
@@ -21,43 +17,32 @@ class StatusIndicator(Widget):
     }
     """
 
-    status = reactive("idle")   # online, warning, offline, idle, tracking
-    label = reactive("System")
-    _pulse_idx: reactive[int] = reactive(0)
-
     COLORS = {
-        "online":   "#0dccb0",
-        "tracking": "#0dccb0",
-        "warning":  "#f0a030",
-        "offline":  "#e84040",
-        "idle":     "#384050",
+        "online":   "#00a3ff",
+        "tracking": "#80d0ff",
+        "warning":  "#c09040",
+        "offline":  "#4a607a",
+        "idle":     "#2a3a50",
+    }
+
+    SYMBOLS = {
+        "online":   "●",
+        "tracking": "●",
+        "warning":  "◈",
+        "offline":  "○",
+        "idle":     "○",
     }
 
     def __init__(self, label: str = "System", status: str = "idle", **kwargs):
         super().__init__(**kwargs)
-        self.label = label
-        self.status = status
-
-    def on_mount(self) -> None:
-        self.set_interval(0.6, self._pulse)
-
-    def _pulse(self) -> None:
-        if self.status in ("online", "tracking"):
-            self._pulse_idx = (self._pulse_idx + 1) % len(_PULSE_FRAMES)
+        self._label = label
+        self._status = status
 
     def set_status(self, status: str) -> None:
-        self.status = status
-        self._pulse_idx = 0
+        self._status = status
         self.refresh()
 
     def render(self) -> str:
-        color = self.COLORS.get(self.status, "#384050")
-        if self.status in ("online", "tracking"):
-            symbol = _PULSE_FRAMES[self._pulse_idx]
-        elif self.status == "warning":
-            symbol = "◈"
-        elif self.status == "offline":
-            symbol = "✖"
-        else:
-            symbol = "○"
-        return f"[{color}]{symbol}[/] [#8090a0]{self.label}[/]"
+        color = self.COLORS.get(self._status, "#2a3a50")
+        symbol = self.SYMBOLS.get(self._status, "○")
+        return f"[{color}]{symbol}[/] [#8098b0]{self._label}[/]"
