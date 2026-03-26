@@ -1,130 +1,180 @@
 /* ═══════════════════════════════════════════════════════════════════════
-   KURSORIN TUI — Midnight Blue Command-Center (Single View)
+   KURSORIN TUI — Surveillance / Industrial Control Panel
+   Palette: Teal #0dccb0 · Amber #f0a030 · Crimson #e84040 · Near-black #08090d
    ═══════════════════════════════════════════════════════════════════════ */
 
-/* ── Global ────────────────────────────────────────────────────────────── */
+/* ── Global ─────────────────────────────────────────────────────────────── */
 
 Screen {
-    background: #0a0e1a;
-    color: #e2e8f0;
+    background: #08090d;
+    color: #c8d0d8;
+    overflow: hidden;
 }
 
-/* ── Header Bar ────────────────────────────────────────────────────────── */
+/* ── Header Bar ──────────────────────────────────────────────────────────── */
 
 #header-bar {
     dock: top;
     height: 1;
-    background: #060912;
-    color: #3b82f6;
+    background: #04050a;
+    color: #0dccb0;
     content-align: left middle;
-    border-bottom: solid #1e3a5f;
+    border-bottom: solid #0d2922;
 }
 
-/* ── Status Bar (bottom) ──────────────────────────────────────────────── */
+#header-engine-state {
+    dock: right;
+    width: 22;
+    content-align: right middle;
+    color: #f0a030;
+}
+
+/* ── Status Bar ──────────────────────────────────────────────────────────── */
 
 #status-bar {
     dock: bottom;
     height: 1;
-    background: #060912;
-    color: #64748b;
+    background: #04050a;
+    color: #384050;
     content-align: left middle;
-    border-top: solid #1e3a5f;
+    border-top: solid #0d2922;
 }
 
-/* ── Main Scroll ──────────────────────────────────────────────────────── */
+/* ── Main Scroll ─────────────────────────────────────────────────────────── */
 
 #main-scroll {
     width: 100%;
     height: 1fr;
-    padding: 0 4;
-    align: center top;
+    padding: 0 3;
 }
 
-/* ── Logo ──────────────────────────────────────────────────────────────── */
+/* ── Logo ────────────────────────────────────────────────────────────────── */
 
 #logo-art {
     text-align: center;
     height: auto;
     width: 100%;
-    margin: 2 0 0 0;
+    margin: 1 0 0 0;
 }
 
 #logo-subtitle {
     text-align: center;
     width: 100%;
     height: 1;
-    margin: 0 0 1 0;
+    margin: 0 0 0 0;
+    color: #384050;
 }
 
-/* ── Command Input ────────────────────────────────────────────────────── */
+/* ── Command Input ───────────────────────────────────────────────────────── */
 
 #cmd-input {
-    width: 80%;
+    width: 70%;
     max-width: 80;
-    margin: 0;
+    margin: 1 0 0 0;
     height: 3;
-    background: #0f1729;
-    color: #e2e8f0;
-    border: tall #1e3a5f;
+    background: #0a0d12;
+    color: #c8d0d8;
+    border: tall #0d2922;
     padding: 0 1;
-    transition: border 400ms;
+    transition: border 300ms;
 }
 
 #cmd-input:focus {
-    border: tall #3b82f6;
+    border: tall #0dccb0;
+    background: #06090f;
 }
 
-/* ── Hint Chips ───────────────────────────────────────────────────────── */
+/* ── Hint Chips ──────────────────────────────────────────────────────────── */
 
 #hint-chips {
     text-align: center;
     width: 100%;
     height: 1;
-    margin: 1 0 0 0;
+    margin: 0 0 1 0;
+    color: #384050;
 }
 
-/* ── Spacers ──────────────────────────────────────────────────────────── */
+/* ── Spacers ─────────────────────────────────────────────────────────────── */
 
 .spacer-xs { height: 1; }
 .spacer-sm { height: 2; }
 .spacer-lg { height: 4; }
 
-/* ── Panels (collapsible sections) ────────────────────────────────────── */
+/* ── Tabbed Content ──────────────────────────────────────────────────────── */
+
+TabbedContent {
+    height: auto;
+    width: 100%;
+}
+
+TabbedContent > TabPane {
+    padding: 1 0;
+    height: auto;
+}
+
+Tabs {
+    background: #04050a;
+    border-bottom: solid #0d2922;
+    height: 3;
+    align: center middle;
+}
+
+Tab {
+    background: #0a0d12;
+    color: #384050;
+    padding: 0 2;
+    margin: 0 1;
+    border: tall #0d2922;
+    transition: background 200ms, color 200ms, border 200ms;
+}
+
+Tab:hover {
+    background: #0d1520;
+    color: #8ecfc8;
+    border: tall #0dccb0;
+}
+
+Tab.-active {
+    background: #0d2922;
+    color: #0dccb0;
+    border: tall #0dccb0;
+    text-style: bold;
+}
+
+/* ── Panel Wrapper ───────────────────────────────────────────────────────── */
 
 .panel {
-    background: #0f1729;
-    border: round #1e3a5f;
+    background: #0a0d12;
+    border: round #0d2922;
     padding: 1 2;
     margin: 1 0;
     height: auto;
-    max-width: 90;
+    width: 100%;
     transition: background 300ms;
 }
 
 .panel:hover {
-    background: #111d33;
+    background: #0c1018;
 }
 
 .panel-title {
-    color: #3b82f6;
+    color: #0dccb0;
     text-style: bold;
     margin: 0 0 0 0;
 }
 
-/* ── Rules ─────────────────────────────────────────────────────────────── */
-
 Rule {
-    color: #1e3a5f;
+    color: #0d2922;
     margin: 0 0 1 0;
 }
 
-/* ── Stat Cards ───────────────────────────────────────────────────────── */
+/* ── Stat Cards ──────────────────────────────────────────────────────────── */
 
 StatCard {
     height: 5;
     width: 1fr;
-    background: #0a1225;
-    border: round #1e3a5f;
+    background: #070a0f;
+    border: round #0d2922;
     padding: 1 2;
     margin: 0 1 0 0;
     content-align: center middle;
@@ -132,8 +182,8 @@ StatCard {
 }
 
 StatCard:hover {
-    border: round #1d4170;
-    background: #111d33;
+    border: round #0dccb0;
+    background: #0c1820;
 }
 
 #stats-row {
@@ -141,12 +191,12 @@ StatCard:hover {
     margin: 0 0 1 0;
 }
 
-/* ── Status Dots ──────────────────────────────────────────────────────── */
+/* ── Status Dots ─────────────────────────────────────────────────────────── */
 
 StatusDot {
     height: 1;
     width: auto;
-    margin: 0 1 0 0;
+    margin: 0 2 0 0;
 }
 
 #status-dots {
@@ -154,69 +204,82 @@ StatusDot {
     margin: 0 0 1 0;
 }
 
-/* ── Action Buttons ───────────────────────────────────────────────────── */
+/* ── Action Buttons ──────────────────────────────────────────────────────── */
 
 .action-btn {
     width: 100%;
     height: 3;
     margin: 0 0 1 0;
-    background: #0a1225;
-    color: #60a5fa;
+    background: #0a0d12;
+    color: #0dccb0;
     text-style: bold;
-    border: tall #1e3a5f;
+    border: tall #0d2922;
     transition: background 200ms, border 200ms, color 200ms;
 }
 
 .action-btn:hover {
-    background: #0f1e33;
-    border: tall #3b82f6;
-    color: #93c5fd;
+    background: #0c1820;
+    border: tall #0dccb0;
+    color: #5eeada;
 }
 
 .action-btn:focus {
-    background: #0f1e33;
-    border: tall #3b82f6;
+    background: #0c1820;
+    border: tall #0dccb0;
 }
 
 .action-btn.-primary {
-    background: #172554;
-    color: #60a5fa;
-    border: tall #3b82f6;
+    background: #062a22;
+    color: #0dccb0;
+    border: tall #0dccb0;
 }
 
 .action-btn.-primary:hover {
-    background: #1e3a8a;
-    color: #93c5fd;
+    background: #0d3d30;
+    color: #5eeada;
+}
+
+.action-btn.-amber {
+    background: #1a1000;
+    color: #f0a030;
+    border: tall #5a3a00;
+}
+
+.action-btn.-amber:hover {
+    background: #221500;
+    border: tall #f0a030;
+    color: #f8c060;
 }
 
 .action-btn.-danger {
-    background: #1c0f16;
-    color: #f87171;
-    border: tall #7f1d1d;
+    background: #1a0a0a;
+    color: #e84040;
+    border: tall #5a1010;
 }
 
 .action-btn.-danger:hover {
-    background: #2d1520;
-    border: tall #ef4444;
-    color: #fca5a5;
+    background: #241010;
+    border: tall #e84040;
+    color: #f07070;
 }
 
-/* ── Settings ─────────────────────────────────────────────────────────── */
+/* ── Settings ────────────────────────────────────────────────────────────── */
 
 #settings-sections {
     height: auto;
 }
 
 .settings-section-title {
-    color: #60a5fa;
+    color: #f0a030;
     text-style: bold;
     margin: 1 0 0 0;
+    padding: 0 0 0 0;
 }
 
 .setting-label {
     width: 1fr;
     content-align: left middle;
-    color: #cbd5e1;
+    color: #8090a0;
 }
 
 .setting-input {
@@ -240,7 +303,7 @@ SettingToggle {
 }
 
 SettingToggle:hover {
-    background: #0d1a2e;
+    background: #0c1018;
 }
 
 SettingInput {
@@ -250,56 +313,123 @@ SettingInput {
 }
 
 SettingInput:hover {
-    background: #0d1a2e;
+    background: #0c1018;
 }
 
-/* ── Switches ─────────────────────────────────────────────────────────── */
+/* ── Switches ────────────────────────────────────────────────────────────── */
 
 Switch {
-    background: #1e3a5f;
+    background: #1a2030;
 }
 
 Switch.-on {
-    background: #3b82f6;
+    background: #0dccb0;
 }
 
-/* ── Inputs ────────────────────────────────────────────────────────────── */
+/* ── Inputs ──────────────────────────────────────────────────────────────── */
 
 Input {
-    background: #0a1225;
-    color: #e2e8f0;
-    border: tall #1e3a5f;
+    background: #070a0f;
+    color: #c8d0d8;
+    border: tall #0d2922;
     transition: border 300ms;
 }
 
 Input:focus {
-    border: tall #3b82f6;
+    border: tall #0dccb0;
 }
 
-/* ── Progress Bar ─────────────────────────────────────────────────────── */
+/* ── Progress Bar ────────────────────────────────────────────────────────── */
 
 ProgressBar {
     margin: 0 0 1 0;
 }
 
 ProgressBar Bar {
-    color: #3b82f6;
-    background: #1e3a5f;
+    color: #0dccb0;
+    background: #0d2022;
 }
 
-/* ── Footer ────────────────────────────────────────────────────────────── */
+/* ── Accuracy Panel ──────────────────────────────────────────────────────── */
+
+.accuracy-section-title {
+    color: #f0a030;
+    text-style: bold;
+    margin: 1 0 0 0;
+}
+
+AccuracyMeter {
+    height: 4;
+    width: 100%;
+    background: #070a0f;
+    border: round #0d2922;
+    padding: 0 2;
+    margin: 0 0 1 0;
+    transition: border 250ms;
+}
+
+AccuracyMeter:hover {
+    border: round #0dccb0;
+}
+
+.accuracy-grid {
+    height: auto;
+    margin: 0 0 1 0;
+}
+
+.accuracy-scores {
+    height: auto;
+    margin: 0 0 1 0;
+}
+
+/* ── Doctor ──────────────────────────────────────────────────────────────── */
+
+#doctor-log {
+    color: #8090a0;
+    min-height: 4;
+    margin: 0 0 1 0;
+    padding: 0 1;
+    border: round #0d2922;
+    background: #070a0f;
+}
+
+#doctor-summary {
+    min-height: 2;
+    margin: 0;
+}
+
+/* ── Update Panel ────────────────────────────────────────────────────────── */
+
+#update-log {
+    color: #8090a0;
+    min-height: 3;
+    margin: 0 0 1 0;
+    padding: 0 1;
+    border: round #0d2922;
+    background: #070a0f;
+}
+
+/* ── Footer ──────────────────────────────────────────────────────────────── */
 
 Footer {
-    background: #060912;
-    color: #64748b;
+    background: #04050a;
+    color: #384050;
 }
 
 Footer > .footer--key {
-    color: #3b82f6;
+    color: #0dccb0;
     text-style: bold;
-    background: #0f1729;
+    background: #062a22;
 }
 
 Footer > .footer--description {
-    color: #64748b;
+    color: #384050;
+}
+
+/* ── Notifications ───────────────────────────────────────────────────────── */
+
+Toast {
+    background: #0a1820;
+    border: round #0dccb0;
+    color: #c8d0d8;
 }
