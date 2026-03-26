@@ -509,6 +509,35 @@ def lang(language):
 # ─── INFO ─────────────────────────────────────────────────────────────────────
 
 @cli.command()
+def stop():
+    """Emergency stop: kills all running KURSORIN processes."""
+    import psutil
+    import os
+    init_lang()
+    
+    found = False
+    current_pid = os.getpid()
+    
+    for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+        try:
+            cmdline = proc.info.get('cmdline')
+            if not cmdline: continue
+            
+            # Check for "python -m kursorin" or similar
+            cmd_str = " ".join(cmdline).lower()
+            if ("kursorin" in cmd_str) and (proc.info['pid'] != current_pid):
+                console.print(f"[{COLORS['warning']}]Terminating process {proc.info['pid']} ({proc.info['name']})...[/]")
+                proc.terminate()
+                found = True
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            continue
+            
+    if found:
+        console.print(f"[{COLORS['success']}]✓ {t('status.stopped')}[/]")
+    else:
+        console.print(f"[{COLORS['muted']}]{t('status.not_running')}[/]")
+
+@cli.command()
 def info():
     """Show detailed system info."""
     init_lang()

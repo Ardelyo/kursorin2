@@ -11,6 +11,7 @@ import threading
 import time
 from dataclasses import dataclass
 from typing import Callable, Dict, List, Optional, Tuple
+import pyautogui
 
 import cv2
 import numpy as np
@@ -442,6 +443,10 @@ class KursorinEngine:
                 if current_pm is not None:
                     current_pm.frame_complete()
                 
+            except pyautogui.FailSafeException:
+                logger.warning("Fail-safe triggered (mouse at corner). Stopping KURSORIN...")
+                self.stop()
+                break
             except Exception as e:
                 logger.exception("Error in processing loop")
                 self._handle_error(e)
