@@ -242,6 +242,7 @@ def config_show():
     _print_full_config(cfg)
 
 
+def _set_nested(obj, key, value):
     parts = key.split(".")
     target = obj
     for part in parts[:-1]:

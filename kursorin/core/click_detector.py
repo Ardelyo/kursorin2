@@ -7,6 +7,7 @@ Detects click events from various inputs (Blink, Dwell, Pinch).
 import time
 from typing import Optional, Tuple
 import numpy as np
+import pyautogui
 
 from kursorin.config import KursorinConfig
 from kursorin.constants import ClickType, Gesture
@@ -151,8 +152,13 @@ class ClickDetector:
         # Ideally convert to pixels, but for now use normalized threshold approx
         dist = np.linalg.norm(pos - self.dwell_position)
         
-        # Threshold approx (normalized): dwell_radius_px / approx_screen_width
-        dwell_radius_normalized = self.config.click.dwell_radius_px / 1920.0
+        # Threshold approx (normalized): dwell_radius_px / actual_screen_width
+        try:
+            screen_width = pyautogui.size()[0]
+        except Exception:
+            screen_width = 1920.0
+            
+        dwell_radius_normalized = self.config.click.dwell_radius_px / screen_width
         if dist > dwell_radius_normalized:
             # Moved too much, reset
             self.dwell_position = pos

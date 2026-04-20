@@ -22,6 +22,12 @@ import os
 import json
 from loguru import logger
 
+try:
+    from pynput import keyboard
+    HAS_PYNPUT = True
+except ImportError:
+    HAS_PYNPUT = False
+
 from kursorin.config import KursorinConfig
 from kursorin.constants import TrackingState, TrackingMode, ClickType
 from kursorin.exceptions import (
@@ -116,6 +122,7 @@ class KursorinEngine:
         # Processing thread
         self._processing_thread: Optional[threading.Thread] = None
         self._stop_event = threading.Event()
+        self._hotkey_listener = None
         
         # Callbacks
         self._frame_callbacks: List[Callable[[FrameResult], None]] = []
@@ -295,6 +302,17 @@ class KursorinEngine:
         )
         self._processing_thread = thread
         thread.start()
+        
+        # Setup Panic Key (Global Hotkey)
+        if HAS_PYNPUT:
+            def on_panic():
+                logger.warning("Panic Key triggered! Stopping KURSORIN...")
+                # We use threading.Thread to avoid blocking the hotkey listener thread itself
+                threading.Thread(target=self.stop, daemon=True).start()
+                
+            self._hotkey_listener = keyboard.GlobalHotKeys({'<ctrl>+q': on_panic})
+            self._hotkey_listener.start()
+            logger.info("Global Panic Key (Ctrl+Q) registered")
         
         self.state = TrackingState.TRACKING
         logger.info("KURSORIN engine started")
@@ -615,6 +633,13 @@ class KursorinEngine:
             if hand_tracker is not None:
                 hand_tracker.close()
                 self._hand_tracker = None
+                
+            if self._hotkey_listener is not None:
+                try:
+                    self._hotkey_listener.stop()
+                except Exception:
+                    pass
+                self._hotkey_listener = None
     
     # =========================================================================
     # Callback Registration

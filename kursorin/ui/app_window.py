@@ -16,8 +16,10 @@ from kursorin.ui.theme import PALETTE, TYPO, SPACING, apply_theme
 from kursorin.ui.overlay import Overlay
 from kursorin.ui.calibration_window import CalibrationWindow
 from kursorin.ui.settings_panel import SettingsPanel
+from kursorin.ui.onboarding_wizard import show_onboarding_wizard
 from kursorin.i18n import t
 from kursorin import __version__
+import os
 
 
 class AppWindow:
@@ -52,6 +54,20 @@ class AppWindow:
 
         self.engine.on_frame(self._on_frame)
         self.root.protocol("WM_DELETE_WINDOW", self._on_close)
+        
+        # Check if onboarding is needed
+        self.root.after(500, self._check_onboarding)
+
+    def _check_onboarding(self):
+        calib_path = os.path.expanduser("~/.kursorin/calibration.json")
+        if not os.path.exists(calib_path):
+            needs_calib = show_onboarding_wizard(self.root, self.engine, self.config)
+            if needs_calib:
+                # Need to start engine before calibrating
+                if not self.engine.is_running:
+                    self._toggle_tracking()
+                # Start calibration shortly after
+                self.root.after(1000, self._start_calibration)
 
     def _build_sidebar(self):
         self.sidebar = ctk.CTkFrame(
