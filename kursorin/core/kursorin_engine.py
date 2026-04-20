@@ -38,6 +38,7 @@ from kursorin.core.click_detector import ClickDetector
 from kursorin.core.calibration_model import CalibrationModel
 from kursorin.utils.camera_manager import CameraManager
 from kursorin.utils.performance_monitor import PerformanceMonitor
+from kursorin.utils.platform_utils import is_admin, is_windows
 
 
 @dataclass
@@ -170,6 +171,16 @@ class KursorinEngine:
         if pm is not None:
             return pm.avg_latency_ms
         return 0.0
+
+    @property
+    def is_admin(self) -> bool:
+        """Check if the engine is running with admin privileges."""
+        return is_admin()
+
+    @property
+    def is_windows(self) -> bool:
+        """Check if the engine is running on Windows."""
+        return is_windows()
     
     def initialize(self) -> None:
         """

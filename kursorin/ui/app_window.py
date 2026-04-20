@@ -17,6 +17,7 @@ from kursorin.ui.overlay import Overlay
 from kursorin.ui.calibration_window import CalibrationWindow
 from kursorin.ui.settings_panel import SettingsPanel
 from kursorin.i18n import t
+from kursorin import __version__
 
 
 class AppWindow:
@@ -249,13 +250,28 @@ class AppWindow:
         )
         self.lbl_status.pack(side="left", padx=SPACING.sm)
 
-        from kursorin import __version__
         ver_label = ctk.CTkLabel(
             self.status_bar, text=f"v{__version__}  ",
             font=(TYPO.family_mono, TYPO.size_tiny),
             text_color=PALETTE.fg_muted, anchor="e",
         )
         ver_label.pack(side="right", padx=SPACING.sm)
+
+        # Admin privilege check (Windows specific)
+        if self.engine.is_windows and not self.engine.is_admin:
+            self.admin_warning = ctk.CTkLabel(
+                self.status_bar, text=f"⚠ {t('gui.limited_control')}",
+                font=(TYPO.family_body, TYPO.size_tiny, TYPO.weight_bold),
+                text_color=PALETTE.accent_amber, cursor="hand2"
+            )
+            self.admin_warning.pack(side="right", padx=SPACING.md)
+            
+            # Simple tooltip-like behavior (could be improved with a real tooltip library)
+            from tkinter import messagebox
+            def show_admin_info(event):
+                messagebox.showinfo(t('gui.admin_warning'), t('gui.admin_tooltip'))
+            
+            self.admin_warning.bind("<Button-1>", show_admin_info)
 
     def _switch_view(self, view_name: str):
         self._current_view = view_name

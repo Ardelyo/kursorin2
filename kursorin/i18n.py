@@ -313,6 +313,18 @@ _STRINGS: Dict[str, Dict[str, str]] = {
         "en": "Error",
         "id": "Kesalahan",
     },
+    "gui.limited_control": {
+        "en": "Limited Control",
+        "id": "Kontrol Terbatas",
+    },
+    "gui.admin_warning": {
+        "en": "Admin Rights Required",
+        "id": "Akses Admin Diperlukan",
+    },
+    "gui.admin_tooltip": {
+        "en": "Administrative privileges are required on Windows to control system windows like Task Manager and UAC prompts.",
+        "id": "Hak akses administrator diperlukan pada Windows untuk dapat mengontrol jendela sistem seperti Task Manager dan jendela UAC.",
+    },
 
     # ── Settings panel ────────────────────────────────────────────────────
     "settings.title": {
