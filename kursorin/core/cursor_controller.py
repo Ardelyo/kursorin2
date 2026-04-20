@@ -20,7 +20,7 @@ class CursorController:
     def __init__(self, config: KursorinConfig):
         self.config = config
         pyautogui.FAILSAFE = True  # Enable failsafe (top-left corner to stop)
-        pyautogui.PAUSE = 0.01      # Small pause for stability
+        pyautogui.PAUSE = 0.0      # No artificial pause — FAILSAFE is sufficient protection
         
         # Get screen dimensions
         try:

@@ -171,6 +171,14 @@ _STRINGS: Dict[str, Dict[str, str]] = {
         "en": "Saved",
         "id": "Tersimpan",
     },
+    "status.stopped": {
+        "en": "All matching processes terminated.",
+        "id": "Semua proses yang cocok telah dihentikan.",
+    },
+    "status.not_running": {
+        "en": "No KURSORIN process found running.",
+        "id": "Tidak ada proses KURSORIN yang berjalan.",
+    },
 
     # ── Doctor ────────────────────────────────────────────────────────────
     "doctor.running": {

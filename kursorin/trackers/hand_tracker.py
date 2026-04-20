@@ -94,16 +94,25 @@ class HandTracker(BaseTracker):
         # Apply modality-specific and global inversion
         pos_x = index_tip.x
         pos_y = index_tip.y
-        
+
         if self.config.tracking.invert_x ^ self.config.tracking.hand_invert_x:
             pos_x = 1.0 - pos_x
         if self.config.tracking.invert_y ^ self.config.tracking.hand_invert_y:
             pos_y = 1.0 - pos_y
-            
+
+        # Apply sensitivity scaling to match the coordinate space of head/eye trackers.
+        # Without this, hand position is raw 0-1 camera space while head/eye are scaled
+        # by their active-range ratios, making weighted fusion inconsistent.
+        sensitivity = self.config.tracking.hand_sensitivity
+        rel_x = (pos_x - 0.5) * sensitivity
+        rel_y = (pos_y - 0.5) * sensitivity
+        pos_x = max(0.0, min(1.0, 0.5 + rel_x))
+        pos_y = max(0.0, min(1.0, 0.5 + rel_y))
+
         return TrackerResult(
             valid=True,
             position=np.array([pos_x, pos_y]),
-            confidence=1.0, 
+            confidence=1.0,
             landmarks=landmarks,
             timestamp=time.time(),
             metadata={
