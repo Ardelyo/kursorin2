@@ -99,6 +99,10 @@ class KursorinEngine:
         self._state = TrackingState.IDLE
         self._is_running = False
         self._is_paused = False
+        
+        # Optimization caches
+        self._brightness_counter = 0
+        self._cached_alpha = 1.0
         self._lock = threading.RLock()
         
         # Initialize components
@@ -498,6 +502,26 @@ class KursorinEngine:
         # Flip frame if configured (mirror mode)
         if self.config.camera.flip_horizontal:
             frame = cv2.flip(frame, 1)
+            
+        # [LOW-END OPTIMIZATION] Ultra-lightweight low-light enhancement
+        if self.config.camera.auto_exposure:
+            self._brightness_counter += 1
+            if self._brightness_counter >= 30: # Check roughly every ~1 second
+                self._brightness_counter = 0
+                # Downsample heavily for near-zero cost brightness checking
+                small = cv2.resize(frame, (64, 48))
+                gray = cv2.cvtColor(small, cv2.COLOR_BGR2GRAY)
+                mean_val = gray.mean()
+                
+                # If room is dark, calculate a boost multiplier
+                if mean_val < 70:
+                    self._cached_alpha = max(1.0, min(1.8, 70 / max(mean_val, 1)))
+                else:
+                    self._cached_alpha = 1.0
+                    
+            # Only apply enhancement (which has CPU cost) if it's genuinely needed
+            if self._cached_alpha > 1.0:
+                frame = cv2.convertScaleAbs(frame, alpha=self._cached_alpha, beta=10)
         
         self._frame_count += 1
         timestamp = time.time()

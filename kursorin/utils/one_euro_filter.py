@@ -52,7 +52,7 @@ class OneEuroFilter:
         """
         # Get timestamp
         if timestamp is None:
-            timestamp = time.time()
+            timestamp = time.perf_counter()
             
         # Initialize on first call
         if self.last_time is None:
