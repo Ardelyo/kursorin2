@@ -17,11 +17,17 @@ class CursorSmoother:
     """
     Smooths cursor movement using One Euro Filter.
     """
-    
+
     def __init__(self, config: KursorinConfig):
         self.config = config
         self.prev_pos = None
-        
+
+        # Cache screen size once — avoids a syscall inside the hot path every frame.
+        try:
+            self._screen_w, self._screen_h = pyautogui.size()
+        except Exception:
+            self._screen_w, self._screen_h = 1920, 1080
+
         # Initialize filters for X and Y
         self.filter_x = OneEuroFilter(
             min_cutoff=config.smoothing.one_euro_min_cutoff,
@@ -56,16 +62,14 @@ class CursorSmoother:
         
         # Deadzone logic (Eye Precision)
         if self.prev_pos is not None:
-            try:
-                screen_w, screen_h = pyautogui.size()
-            except Exception:
-                screen_w, screen_h = (1920, 1080)
-                
+            # Use cached screen size — avoids a syscall every frame.
+            screen_w, screen_h = self._screen_w, self._screen_h
+
             # Convert normalized distance to pixel distance
             dx_px = (smoothed_x - self.prev_pos[0]) * screen_w
             dy_px = (smoothed_y - self.prev_pos[1]) * screen_h
             dist_px = np.sqrt(dx_px**2 + dy_px**2)
-            
+
             if dist_px < self.config.smoothing.dead_zone_px:
                 # Discard micro-jitter
                 smoothed_x, smoothed_y = self.prev_pos

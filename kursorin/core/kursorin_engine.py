@@ -260,7 +260,9 @@ class KursorinEngine:
                 # Initialize controllers and detectors
                 self._cursor_controller = CursorController(self.config)
                 self._click_detector = ClickDetector(self.config)
-                self._performance_monitor = PerformanceMonitor()
+                self._performance_monitor = PerformanceMonitor(
+                    target_fps=self.config.camera.target_fps
+                )
                 
                 # Initialize calibration
                 self._calibration_model = CalibrationModel()
@@ -439,6 +441,7 @@ class KursorinEngine:
         pm = self._performance_monitor
         
         while not self._stop_event.is_set():
+            _loop_iter_start = time.time()
             try:
                 # Process frame
                 result = self._process_frame()
@@ -471,10 +474,20 @@ class KursorinEngine:
                         except Exception as e:
                             logger.error(f"Error in frame callback: {e}")
                 
-                # Frame rate limiting
+                # Frame rate limiting — sleep remaining budget to hit target FPS
                 current_pm = self._performance_monitor
                 if current_pm is not None:
                     current_pm.frame_complete()
+
+                target_fps = self.config.camera.target_fps
+                if target_fps > 0:
+                    target_interval = 1.0 / target_fps
+                    # result holds the start_time recorded inside _process_frame;
+                    # use the wall time since the loop iteration began instead.
+                    elapsed = time.time() - _loop_iter_start
+                    sleep_time = target_interval - elapsed
+                    if sleep_time > 0.001:  # only sleep if gap is meaningful
+                        time.sleep(sleep_time)
                 
             except pyautogui.FailSafeException:
                 logger.warning("Fail-safe triggered (mouse at corner). Stopping KURSORIN...")

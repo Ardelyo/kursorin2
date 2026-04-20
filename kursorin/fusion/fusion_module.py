@@ -76,18 +76,15 @@ class FusionModule:
             
         if not positions:
             raise NoValidModalityError()
-            
-        # Normalize weights
-        total_weight = sum(weights)
-        if total_weight == 0:
-             # Fallback: equal weights
-             weights = [1.0 / len(positions)] * len(positions)
-        else:
-            weights = [w / total_weight for w in weights]
-            
-        # Weighted average
-        fused_pos = np.zeros(2)
-        for pos, w in zip(positions, weights):
-            fused_pos += pos * w
-            
+
+        positions_arr = np.array(positions)   # shape (N, 2)
+        weights_arr = np.array(weights, dtype=float)
+
+        total_weight = weights_arr.sum()
+        if total_weight <= 0:
+            # Fallback: equal weights
+            weights_arr = np.ones(len(positions))
+            total_weight = float(len(positions))
+
+        fused_pos = np.average(positions_arr, axis=0, weights=weights_arr)
         return tuple(fused_pos)

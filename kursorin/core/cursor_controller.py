@@ -33,15 +33,14 @@ class CursorController:
     def move_to(self, position: Tuple[float, float]):
         """
         Move cursor to normalized position (0-1).
+
+        Note: invert_x / invert_y are already handled inside each tracker via
+        XOR logic before fusion. The controller must NOT re-apply them or the
+        global inversion flag ends up applied twice (double-flip = no effect at
+        best, wrong direction at worst).
         """
         x, y = position
-        
-        # Map to screen coordinates
-        if self.config.tracking.invert_x:
-            x = 1.0 - x
-        if self.config.tracking.invert_y:
-            y = 1.0 - y
-            
+
         screen_x = int(x * self.screen_width)
         screen_y = int(y * self.screen_height)
         

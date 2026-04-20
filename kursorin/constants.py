@@ -13,7 +13,7 @@ from typing import Dict, List, Tuple
 # =============================================================================
 
 VERSION = "1.2.9"
-VERSION_TUPLE = (1, 0, 0)
+VERSION_TUPLE = (1, 2, 9)
 BUILD_DATE = "2024-01-15"
 
 

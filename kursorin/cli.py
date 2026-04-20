@@ -102,7 +102,6 @@ def cli(ctx):
 @click.option('--scenario', type=click.Choice(['default', 'hands-free', 'no-head']), default='default', help='Tracking scenario preset.')
 def start(scenario):
     """Start the KURSORIN tracking engine."""
-    init_lang()
     from kursorin.utils.logger import setup_logging
     
     console.print(BANNER)
@@ -180,6 +179,10 @@ def _update_dashboard(layout: Layout, engine: KursorinEngine, config):
     metrics_table.add_row(t('metric.frames'), str(engine._frame_count))
     uptime = time.time() - engine._start_time if engine._start_time else 0
     metrics_table.add_row(t('metric.uptime'), f"{uptime:.1f}s")
+    pm = engine._performance_monitor
+    if pm is not None:
+        drop_color = COLORS['warning'] if pm.drop_count > 0 else COLORS['success']
+        metrics_table.add_row("Drops", f"[{drop_color}]{pm.drop_count}[/]")
 
     layout["metrics"].update(Panel(metrics_table, title=f"[{COLORS['secondary']}]{t('status.title')}[/]", border_style=COLORS['secondary']))
 
@@ -201,7 +204,6 @@ def _update_dashboard(layout: Layout, engine: KursorinEngine, config):
 @cli.group()
 def config():
     """Show or edit configuration."""
-    init_lang()
     pass
 
 
@@ -298,13 +300,12 @@ def status():
     import sys
     import importlib.util
     from pathlib import Path
-    init_lang()
 
     console.print(BANNER)
 
     table = Table(title=t('status.title'), show_header=True, header_style="bold cyan")
     table.add_column(t('status.component'), style="white", width=22)
-    table.add_column(t('status.title'), style="cyan")
+    table.add_column("Status", style="cyan")
 
     table.add_row("OS", f"{platform.system()} {platform.release()}")
     table.add_row("Python", f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}")
@@ -356,7 +357,6 @@ def doctor():
     import platform
     import importlib.util
     from pathlib import Path
-    init_lang()
     
     # Use a dict for mutable state in the closure
     state = {"passed": 0, "total": 0}
@@ -439,8 +439,6 @@ def doctor():
 @cli.command()
 def calibrate():
     """Run eye calibration."""
-    init_lang()
-    from kursorin.core.kursorin_engine import KursorinEngine
     import tkinter as tk
     
     console.print(BANNER)
@@ -493,7 +491,6 @@ def gui():
 @click.argument('language', required=False, type=click.Choice(['en', 'id']))
 def lang(language):
     """Switch language (en/id)."""
-    init_lang()
     if not language:
         # Show current
         console.print(f"[{COLORS['primary']}]{t('lang.current')}[/]")
@@ -514,7 +511,6 @@ def stop():
     """Emergency stop: kills all running KURSORIN processes."""
     import psutil
     import os
-    init_lang()
     
     found = False
     current_pid = os.getpid()
@@ -541,7 +537,6 @@ def stop():
 @cli.command()
 def info():
     """Show detailed system info."""
-    init_lang()
     cfg = load_config()
     
     console.print(f"[bold cyan]{t('info.title')}[/]")
@@ -566,7 +561,6 @@ def info():
 @click.option('--force', is_flag=True, help='Force update and overwrite local changes.')
 def update(force):
     """Check and pull updates via git."""
-    init_lang()
     from kursorin.utils.updater import GitUpdater
     updater = GitUpdater()
 

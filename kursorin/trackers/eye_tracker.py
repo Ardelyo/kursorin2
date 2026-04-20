@@ -63,23 +63,23 @@ class EyeTracker(BaseTracker):
         # Right eye gaze
         right_gaze = self._get_iris_position(face_landmarks, RIGHT_IRIS_LANDMARKS, RIGHT_EYE_EAR_LANDMARKS, w, h)
         
-        # Average gaze
-        avg_gaze_x = (left_gaze[0] + right_gaze[0]) / 2.0
-        avg_gaze_y = (left_gaze[1] + right_gaze[1]) / 2.0
-        
-        # Apply EMA Smoothing to reduce jitter
+        # Average gaze — keep raw values for calibration metadata
+        raw_gaze_x = (left_gaze[0] + right_gaze[0]) / 2.0
+        raw_gaze_y = (left_gaze[1] + right_gaze[1]) / 2.0
+
+        # Apply EMA Smoothing to reduce jitter (position output only)
         alpha = 0.15
         if hasattr(self.config, 'smoothing') and hasattr(self.config.smoothing, 'eye_ema_alpha'):
             alpha = self.config.smoothing.eye_ema_alpha
-            
+
         smoothed = self.smoothed_gaze
         if smoothed is None:
-            self.smoothed_gaze = np.array([avg_gaze_x, avg_gaze_y])
+            self.smoothed_gaze = np.array([raw_gaze_x, raw_gaze_y])
             smoothed = self.smoothed_gaze
         else:
-            self.smoothed_gaze = smoothed * (1 - alpha) + np.array([avg_gaze_x, avg_gaze_y]) * alpha
+            self.smoothed_gaze = smoothed * (1 - alpha) + np.array([raw_gaze_x, raw_gaze_y]) * alpha
             smoothed = self.smoothed_gaze
-            
+
         avg_gaze_x, avg_gaze_y = smoothed[0], smoothed[1]
         
         # Apply sensitivity / Active Range
@@ -111,8 +111,10 @@ class EyeTracker(BaseTracker):
                 "ear": avg_ear,
                 "left_ear": left_ear,
                 "right_ear": right_ear,
-                "gaze_x": avg_gaze_x,
-                "gaze_y": avg_gaze_y
+                # Raw (pre-smoothing) values — used by CalibrationModel.
+                # The smoothed position is already in .position above.
+                "gaze_x": raw_gaze_x,
+                "gaze_y": raw_gaze_y,
             }
         )
 

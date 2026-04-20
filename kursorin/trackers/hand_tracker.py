@@ -41,19 +41,25 @@ class HandTracker(BaseTracker):
             self.detector = None
             
         self.gesture_history = []
-    
+        # Monotonic timestamp counter required by MediaPipe VIDEO mode.
+        # time.time() can produce the same ms value on two back-to-back calls on
+        # fast hardware, causing MediaPipe to silently discard frames.
+        self._last_timestamp_ms: int = 0
+
     def process(self, frame: np.ndarray, **kwargs) -> TrackerResult:
         """
         Process frame to track hand and gestures.
         """
         if self.detector is None:
             return TrackerResult(valid=False)
-            
+
         rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb_frame)
-        
-        # Use current timestamp for VIDEO mode
-        timestamp_ms = int(time.time() * 1000)
+
+        # Guarantee strict monotonic increase required by MediaPipe VIDEO mode.
+        wall_ms = int(time.time() * 1000)
+        timestamp_ms = max(wall_ms, self._last_timestamp_ms + 1)
+        self._last_timestamp_ms = timestamp_ms
         results = self.detector.detect_for_video(mp_image, timestamp_ms)
         
         if not results.hand_landmarks:
