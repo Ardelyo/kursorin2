@@ -81,14 +81,15 @@ Approximately **15% of the global population** lives with a disability, and a si
 
 ## Key Features
 
-| Category | Description |
-|:---|:---|
+| **TUI Dashboard** | Interactive terminal dashboard for real-time monitoring and control |
+| **Admin Elevation** | Automatic UAC elevation on Windows for seamless mouse control |
 | **Multi-Modal Tracking** | Simultaneous head pose, iris gaze, and hand landmark tracking with adaptive confidence-weighted fusion |
 | **Adaptive Smoothing** | One Euro Filter implementation that eliminates jitter while preserving responsiveness through speed-adaptive cutoff |
 | **Multiple Click Methods** | Blink detection (EAR-based), dwell clicking, pinch gesture, and mouth open detection -- independently configurable |
 | **Drag Support** | Sustained pinch gesture triggers drag operations with configurable hold threshold |
 | **Gesture Recognition** | Six hand gestures recognized: POINTING, PINCH, OPEN\_PALM, FIST, THUMBS\_UP, THUMBS\_DOWN |
 | **Calibration System** | OpenCV homography-based gaze calibration with persistent storage |
+| **EXE Packaging** | Standalone PyInstaller bootstrap for zero-install deployment |
 | **Zero Hardware Cost** | Operates entirely with a standard webcam; no proprietary sensors required |
 | **Cross-Platform** | Tested on Windows 10/11, macOS 10.14+, and Ubuntu 18.04+ |
 
@@ -185,22 +186,43 @@ pip install -r requirements.txt
 
 ### Usage
 
-**GUI Mode (default):**
+**TUI Mode (default command center):**
 
 ```bash
 python -m kursorin
 ```
 
+**GUI Mode (legacy settings window):**
+
+```bash
+python -m kursorin --gui
+```
+
+**CLI Mode (subcommands):**
+
+```bash
+python -m kursorin start
+python -m kursorin status
+python -m kursorin doctor
+```
+
+**Building the Executable (Windows):**
+
+To generate a standalone `.exe` that bundles all models and dependencies:
+
+```powershell
+.\build_exe.ps1
+```
+
+The resulting `kursorin.exe` will be located in the `dist/` directory.
+
+> [!IMPORTANT]
+> **Administrator Privileges:** On Windows, Kursorin will automatically prompt for Administrator elevation via UAC. This is required to allow the system to inject mouse movements into high-integrity applications (like Task Manager or Admin terminals).
+
 **Run benchmark (headless):**
 
 ```bash
 python benchmark.py
-```
-
-**Configuration override example:**
-
-```bash
-python -m kursorin --head-sensitivity-x 3.0 --eye-blink-threshold 0.18
 ```
 
 ---
@@ -481,16 +503,10 @@ Development is planned in four sequential phases, each with prerequisites that m
 
 | ID | Severity | File | Description |
 |:---:|:---|:---|:---|
-| 1 | **Critical** | `app_window.py` | Missing `logger` import causes crash on scenario change |
-| 2 | **Critical** | `config.py` | Pydantic v1/v2 incompatibility causes crash on config serialization |
-| 3 | **Critical** | `app_window.py` | `ImageTk` created in worker thread causes random Tkinter crash |
-| 4 | Medium | `kursorin_engine.py` | Duplicate `_click_detector` assignment at lines 102--103 |
-| 5 | Medium | `click_detector.py` | Dwell radius hardcoded; configuration value ignored |
-| 6 | Medium | All trackers | `timestamp` never populated; One Euro Filter receives dt=0 |
-| 7 | Low | `kursorin/cli.py` | CLI entry point file missing; `kursorin-cli` command non-functional |
-| 8 | Performance | `kursorin_engine.py` | FaceLandmarker invoked 2x per frame; ~35ms unnecessary overhead |
+| 1 | Medium | `kursorin_engine.py` | MediaPipe FaceLandmarker logic can be optimized with shared results |
+| 2 | Low | `eye_tracker.py` | Calibration might require recalibration after extreme head movement |
 
-> All issues have been identified with defined solutions. Refer to the [Technical Report](docs/KURSORIN_Technical_Report.pdf) Section 8 for detailed analysis and fix patterns.
+> Most early stability issues (Pydantic compatibility, logger crashes, thread safety) were resolved in the v1.2.9 stabilization audit.
 
 ---
 
