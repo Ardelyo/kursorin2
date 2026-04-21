@@ -21,6 +21,7 @@ from mediapipe.tasks.python import vision as mp_vision
 import os
 import json
 from loguru import logger
+from kursorin.utils.resource_path import get_resource_path
 
 try:
     from pynput import keyboard
@@ -217,10 +218,7 @@ class KursorinEngine:
                 logger.info(f"Camera initialized: {camera.width}x{camera.height} @ {camera.fps}fps")
                 
                 # Initialize shared FaceLandmarker (replacement for FaceMesh)
-                model_path = os.path.join(
-                    os.path.dirname(os.path.dirname(__file__)), 
-                    "assets", "models", "face_landmarker.task"
-                )
+                model_path = get_resource_path("assets", "models", "face_landmarker.task")
                 
                 if not os.path.exists(model_path):
                     logger.warning(f"Model file not found at {model_path}. Starting fallback download...")

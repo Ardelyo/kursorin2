@@ -6,6 +6,7 @@ from mediapipe.tasks import python as mp_python
 from mediapipe.tasks.python import vision as mp_vision
 import os
 
+from kursorin.utils.resource_path import get_resource_path
 from kursorin.config import KursorinConfig
 from kursorin.constants import Gesture, HandLandmark
 from kursorin.trackers.base_tracker import BaseTracker
@@ -21,10 +22,7 @@ class HandTracker(BaseTracker):
         super().__init__(config)
         
         # Initialize HandLandmarker (Tasks API)
-        model_path = os.path.join(
-            os.path.dirname(os.path.dirname(__file__)), 
-            "assets", "models", "hand_landmarker.task"
-        )
+        model_path = get_resource_path("assets", "models", "hand_landmarker.task")
         
         if os.path.exists(model_path):
             base_options = mp_python.BaseOptions(model_asset_path=model_path)
